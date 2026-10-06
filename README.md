@@ -65,6 +65,7 @@ cmake --build tooling/reference-build --parallel 8
 cargo build --release -p aaftool -p libaaf-acceptance
 python3 tooling/upstream_tests.py
 python3 tooling/differential.py
+python3 tooling/cli_differential.py
 python3 tooling/build_reference_tools.py
 python3 tooling/inspect_differential.py
 ```

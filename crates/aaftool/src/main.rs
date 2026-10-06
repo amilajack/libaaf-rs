@@ -50,9 +50,7 @@ const SWITCHES: &[&str] = &[
     "no-color",
 ];
 fn help() {
-    eprintln!(
-        "Usage: aaftool [analysis|extraction] [options] [AAFFILE]\n\nAnalysis:\n  --cfb-header --cfb-fat --cfb-minifat --cfb-difat --cfb-nodes\n  --cfb-node <path>\n  --aaf-summary --aaf-essences --aaf-clips --aaf-classes --aaf-meta\n  --aaf-properties --trace --dump-meta --dump-tagged-value\n  --dump-class <AAFClassID> --dump-class-raw <AAFClassID>\n\nExtraction:\n  --extract-essences | --extract-clips\n  --extract-path <path> --extract-format <wav|bwav> --extract-mobid\n\nOptions:\n  --pt-true-fades --pt-remove-sae --media-location <path>\n  --samplerate <rate> --pos-format <tc|hms|samples|raw>\n  --show-automation --show-metadata --relative-path\n  --no-color --log-file <file> --verb <0|1|2|3>\n  -h, --help"
-    );
+    eprint!("{}", include_str!("help.txt"));
 }
 fn fail(s: &str) -> String {
     format!("Command line error: {s}\nTry 'aaftool --help' for more informations.")
@@ -160,10 +158,10 @@ fn run() -> Result<(), String> {
         remove_sample_accurate_edits: has("pt-remove-sae"),
         mobid_filenames: has("extract-mobid"),
     };
-    let doc = Document::open(file, options).map_err(|e| format!("Failed to open {file}: {e}"))?;
+    let doc = Document::open(file, options).map_err(|_| format!("Failed to open {file}"))?;
     let c = doc
         .composition()
-        .map_err(|e| format!("Failed to open {file}: {e}"))?;
+        .map_err(|_| format!("Failed to open {file}"))?;
     let display = DisplayOptions {
         position,
         sample_rate,

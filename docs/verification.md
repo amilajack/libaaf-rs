@@ -5,11 +5,12 @@
 - All 65 upstream AAF fixtures parse and produce timelines.
 - 71 upstream comparisons pass: 65 expected analyses and six extraction hashes.
 - 455 additional native differential cases pass.
+- 15 CLI help/required-option/validation/file-selection cases pass, including exact help text.
 - 65 stable property/reference comparisons pass with the approved debug-pointer exception.
 - All 65 fixtures import through wasm; six extraction hashes and structured-error cases pass.
 - Five nested Downloads AAFs pass native comparisons and wasm track/clip-count comparisons, covering 768 tracks and 1,752 clips. Input SHA-256 values are unchanged. Private files and local result reports are excluded from Git.
 - Formatting, Clippy with warnings denied, tests, docs, fuzz target compilation, and the web production build pass locally.
-- Native Linux/macOS/Windows CI passed at f3445af. The Linux reference tool's platform-specific archive path was repaired in 6e3402a.
+- Native Linux/macOS/Windows CI passed at f3445af. The complete Linux reference/wasm job and all three native jobs passed at 6e3402a after fixing the platform-specific archive path.
 
 ## Fuzzing
 

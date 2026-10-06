@@ -1,0 +1,66 @@
+usage: aaftool [analysis|extraction] [options] [AAFFILE]
+
+ CFB Analysis:
+
+   --cfb-header                       Display CFB Header.
+   --cfb-fat                          Display CFB FAT.
+   --cfb-minifat                      Display CFB MiniFAT.
+   --cfb-difat                        Display CFB DiFAT.
+   --cfb-nodes                        Display CFB node list.
+
+   --cfb-node                 <path>  Display node located at the given <path>.
+
+
+ AAF Analysis:
+
+   --aaf-summary                      Display informations from both header and identification objects.
+   --aaf-essences                     Display retrieved AAF audio and video essences.
+   --aaf-clips                        Display retrieved AAF audio and video clips.
+   --aaf-classes                      Display classes contained in AAF file.
+   --aaf-meta                         Display classes and properties from the MetaDictionary.
+   --aaf-properties                   Display properties of all objects in file.
+
+   --trace                            Display AAF class/object structure while parsing.
+   --dump-meta                        Display MetaProperties details for each parsed class containing meta properties.
+   --dump_tagged_value                Display standard TaggedValue properties of Mobs and Components objects.
+   --dump-class         <AAFClassID>  Display aaf properties of a specific AAFClass when it is parsed.
+   --dump-class-raw     <AAFClassID>  Display raw properties of a specific AAFClass when it is parsed.
+
+
+ Embedded Media Extraction:
+
+   --extract-essences                 Extract all embedded audio essences as they are stored (wav or aiff),
+                                      unless --extract-format is set. Raw PCM is extracted as wav file.
+   --extract-clips                    Extract all embedded audio clips (trimed essences) as wav files.
+   --extract-path             <path>  Location where embedded files are extracted.
+   --extract-format       <bwav|wav>  Force extract format to wav or broadcast wav.
+   --extract-mobid                    Name extracted files with their MobID. This also prevents any non-latin
+                                      character in filename.
+
+
+ Software Specific Options:
+
+   --pt-true-fades                    Replace rendered ProTools fade clips with real fades when possible,
+                                      when surrounding clips has enough handle size.
+   --pt-remove-sae                    Remove all ProTools "sample accurate edit" small clips.
+
+
+ Options:
+
+   --media-location           <path>  Location of external audio and video essence files.
+
+   --samplerate               <rate>  Sample rate used for converting displayed position
+                                      and duration values. If not set, AAF dominant sample
+                                      rate is used.
+   --pos-format <tc|hms|samples|raw>  Position and duration display format.
+   --show-automation                  Show track and clip automation values when --aaf-clips is set.
+   --show-metadata                    Show source and clip metadata when --aaf-essences or --aaf-clips is set.
+
+   --relative-path                    Prints AAF's relative essence path when --aaf-essences is set.
+
+   --no-color                         Disable colored output.
+   --log-file                 <file>  Save output to file instead of stdout.
+
+   --verb                      <num>  0=quiet 1=error 2=warning 3=debug.
+
+

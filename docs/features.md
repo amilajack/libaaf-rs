@@ -66,7 +66,7 @@ Reference: `agfline/LibAAF@7925dff4026be06b4edfacdfe458887c2d6503ca`. Checkmarks
 - [x] Native formatting, Clippy, tests, docs and wasm production build/test run locally
 - [x] Linux/macOS/Windows verification workflow configured
 - [x] Native CI passed on Linux, macOS and Windows (`f3445af`)
-- [ ] Full Linux reference/wasm CI confirmed passing
+- [x] Full Linux reference/wasm CI passed (`6e3402a`)
 - [x] Separate paired release parse/extraction benchmark harnesses and measured Mac baseline
 - [ ] Every designated workload at most 5% slower than C with adequate confidence
 - [ ] Every designated workload peak memory at most 10% above C
