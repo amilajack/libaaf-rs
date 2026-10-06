@@ -179,6 +179,26 @@ pub struct Transition {
     pub interpolation: Interpolation,
     pub single_curve: bool,
 }
+impl Transition {
+    /// The pinned reader uses the Edit Protocol's two endpoint fade, retaining
+    /// the supplied interpolation. Custom control points remain in Document.
+    pub fn level_curve(&self) -> Curve {
+        let (start, end) = if self.kind == FadeKind::Out {
+            (1, 0)
+        } else {
+            (0, 1)
+        };
+        Curve {
+            constant: false,
+            interpolation: self.interpolation,
+            points: vec![
+                (Rational::new(0, 1), Rational::new(start, 1)),
+                (Rational::new(1, 1), Rational::new(end, 1)),
+            ],
+        }
+    }
+}
+
 #[derive(Clone, Debug)]
 pub enum Item {
     Clip(Clip),
@@ -995,7 +1015,8 @@ impl Parser<'_> {
                                 1
                             }
                         })
-                        .sum();
+                        .try_fold(0u16, |total, channels| total.checked_add(channels))
+                        .ok_or_else(|| Error::invalid("combined channel count", 0))?;
                 }
             }
         }
@@ -1045,8 +1066,24 @@ impl Parser<'_> {
                     &mut self.composition,
                     self.doc.options.remove_sample_accurate_edits,
                     self.doc.options.recover_protools_fades,
-                );
+                )?;
             }
+        }
+        // Validate absolute display positions as well as relative edit positions.
+        let c = &self.composition;
+        for t in &c.tracks {
+            let start = c.timecode.edit_rate.convert(c.timecode.start, t.edit_rate);
+            for clip in t.items.iter().filter_map(Item::clip) {
+                add(add(clip.position, start)?, clip.length)?;
+            }
+        }
+        for marker in &c.markers {
+            add(
+                marker.position,
+                c.timecode
+                    .edit_rate
+                    .convert(c.timecode.start, marker.edit_rate),
+            )?;
         }
         Ok(())
     }
@@ -1087,30 +1124,40 @@ fn remove_sae(track: &mut Track, i: usize, essences: &[Essence]) -> bool {
     };
     if i > 0
         && let Some(left) = track.items[i - 1].clip_mut()
-        && c.position == left.position + left.length
+        && left.position.checked_add(left.length) == Some(c.position)
         && let Some(s) = left.sources.first()
     {
         let e = &essences[s.essence];
         let length = e.edit_rate.convert(e.length, track.edit_rate);
-        if length - left.source_offset - left.length >= c.length {
-            left.length += c.length;
+        if length
+            .checked_sub(left.source_offset)
+            .and_then(|v| v.checked_sub(left.length))
+            .is_some_and(|v| v >= c.length)
+            && let Some(length) = left.length.checked_add(c.length)
+        {
+            left.length = length;
             track.items.remove(i);
             return true;
         }
     }
     if let Some(right) = track.items.get_mut(i + 1).and_then(Item::clip_mut)
-        && c.position + c.length == right.position
+        && c.position.checked_add(c.length) == Some(right.position)
         && right.source_offset >= c.length
+        && let (Some(position), Some(length), Some(offset)) = (
+            right.position.checked_sub(c.length),
+            right.length.checked_add(c.length),
+            right.source_offset.checked_sub(c.length),
+        )
     {
-        right.position -= c.length;
-        right.length += c.length;
-        right.source_offset -= c.length;
+        right.position = position;
+        right.length = length;
+        right.source_offset = offset;
         track.items.remove(i);
         return true;
     }
     false
 }
-fn post_protools(c: &mut Composition, sae: bool, fades: bool) {
+fn post_protools(c: &mut Composition, sae: bool, fades: bool) -> Result<()> {
     for track in &mut c.tracks {
         let mut i = 0;
         while i < track.items.len() {
@@ -1146,31 +1193,35 @@ fn post_protools(c: &mut Composition, sae: bool, fades: bool) {
                 let left = i
                     .checked_sub(1)
                     .and_then(|i| track.items[i].clip())
-                    .filter(|p| p.position + p.length == clip.position);
+                    .filter(|p| p.position.checked_add(p.length) == Some(clip.position));
                 let right = track
                     .items
                     .get(i + 1)
                     .and_then(Item::clip)
-                    .filter(|p| p.position == clip.position + clip.length);
+                    .filter(|p| clip.position.checked_add(clip.length) == Some(p.position));
                 let has_left = left.is_some();
                 let has_right = right.is_some();
                 let enough_left = left.is_none_or(|p| {
                     p.sources.first().is_some_and(|s| {
                         let e = &c.essences[s.essence];
-                        e.edit_rate.convert(e.length, track.edit_rate) - p.source_offset - p.length
-                            >= clip.length
+                        e.edit_rate
+                            .convert(e.length, track.edit_rate)
+                            .checked_sub(p.source_offset)
+                            .and_then(|v| v.checked_sub(p.length))
+                            .is_some_and(|v| v >= clip.length)
                     })
                 });
                 let enough_right = right.is_none_or(|p| p.source_offset >= clip.length);
                 if (has_left || has_right) && enough_left && enough_right {
                     if has_left {
-                        track.items[i - 1].clip_mut().unwrap().length += clip.length;
+                        let p = track.items[i - 1].clip_mut().unwrap();
+                        p.length = add(p.length, clip.length)?;
                     }
                     if has_right {
                         let p = track.items[i + 1].clip_mut().unwrap();
-                        p.position -= clip.length;
-                        p.length += clip.length;
-                        p.source_offset -= clip.length;
+                        p.position = add(p.position, -clip.length)?;
+                        p.length = add(p.length, clip.length)?;
+                        p.source_offset = add(p.source_offset, -clip.length)?;
                     }
                     let kind = if has_left && has_right {
                         FadeKind::Cross
@@ -1197,4 +1248,5 @@ fn post_protools(c: &mut Composition, sae: bool, fades: bool) {
             i += 1;
         }
     }
+    Ok(())
 }

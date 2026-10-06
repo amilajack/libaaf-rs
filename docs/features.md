@@ -13,7 +13,7 @@ Reference: `agfline/LibAAF@7925dff4026be06b4edfacdfe458887c2d6503ca`. Checkmarks
 - [x] Deterministic raw stream/property inspection with borrowed stream ranges
 - [x] Original property bytes and resolved strong-reference edges match C on all 65 fixtures
 - [ ] Complete upstream parsed-property/debugging presentation equivalence
-- [ ] Extended malformed/fuzz campaign beyond the checked-in cases and compiling fuzz targets
+- [x] AddressSanitizer fuzz runs for document parsing, text inspection/ProTools recovery, and media/URI parsing (see verification.md)
 
 ## Timeline and application behavior
 
@@ -25,7 +25,8 @@ Reference: `agfline/LibAAF@7925dff4026be06b4edfacdfe458887c2d6503ca`. Checkmarks
 - [x] Media Composer clip/track mute/solo, audio warp, adjusted/subclip behavior and marker colors
 - [x] ProTools localized rendered fade/SAE names, recovery with sufficient handles, SAE removal
 - [x] Resolve multichannel combiner length behavior
-- [ ] Full native API fidelity audit for transition curve control points and uncommon graph combinations
+- [x] Native/wasm API exposes the pinned reader’s normalized two-point transition curves
+- [ ] Remaining uncommon graph combinations audited
 
 ## Media and extraction
 
@@ -64,7 +65,8 @@ Reference: `agfline/LibAAF@7925dff4026be06b4edfacdfe458887c2d6503ca`. Checkmarks
 - [x] 455 additional differential cases pass locally, without normalization of substantive output
 - [x] Native formatting, Clippy, tests, docs and wasm production build/test run locally
 - [x] Linux/macOS/Windows verification workflow configured
-- [ ] CI runs confirmed passing on every OS
+- [x] Native CI passed on Linux, macOS and Windows (`f3445af`)
+- [ ] Full Linux reference/wasm CI confirmed passing
 - [x] Separate paired release parse/extraction benchmark harnesses and measured Mac baseline
 - [ ] Every designated workload at most 5% slower than C with adequate confidence
 - [ ] Every designated workload peak memory at most 10% above C

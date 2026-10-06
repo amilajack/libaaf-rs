@@ -102,8 +102,8 @@ pub fn timecode(value: i64, rate: Rational, tc: &Timecode) -> String {
     } else {
         (value as f32 / (unit / fps)) as i64
     };
-    let mut n = frames.unsigned_abs() as i64;
-    let nominal = tc.fps.max(1) as i64;
+    let mut n = frames.unsigned_abs() as i128;
+    let nominal = tc.fps.max(1) as i128;
     if tc.drop {
         let per_minute = nominal * 60 - 2;
         let per_ten = per_minute * 10 + 2;

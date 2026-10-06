@@ -47,3 +47,15 @@ The helper handles macOS/Linux archive names and links the math library. This be
 A single held parse of `PT_Fades.aaf`, sampled using macOS `heap -s` and `vmmap -summary`, measured 2,387,040 allocated bytes in Rust and 1,120,800 in C before compaction. Physical footprint was 4,496 KiB versus 2,816 KiB. These held-process measurements diagnose allocations; they do not replace the paired peak-RSS gate above. Rust's 704 KiB file allocation and spare capacity in node/object arrays were visible in the profile.
 
 Both harnesses support `profile <file> <seconds> <unused-output-directory>` and print the process ID. Run `heap -s <pid>` and `vmmap -summary <pid>` while that document is held. Directory-name indexing and node/object capacities have since been compacted; final acceptance remains pending.
+
+## Compact directory follow-up
+
+The `f3445af` build removes duplicated directory names from the index and reserves exact node/object storage. Five paired batches of 200 operations each measured the following. This is an intermediate result; all memory gates still fail. Raw values are in [benchmark-compact.json](benchmark-compact.json).
+
+| Workload | Mode | Runtime ratio | 95% ratio interval | Peak RSS ratio |
+|---|---|---:|---:|---:|
+| small | parse | 0.966 | 0.950–0.982 | 1.360 |
+| large | parse | 0.520 | 0.513–0.527 | 1.296 |
+| multichannel | parse | 0.986 | 0.973–0.998 | 1.282 |
+| embedded | parse | 0.640 | 0.605–0.677 | 1.445 |
+| embedded | extract | 0.787 | 0.700–0.884 | 1.246 |

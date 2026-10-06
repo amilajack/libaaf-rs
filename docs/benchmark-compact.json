@@ -1,0 +1,407 @@
+{
+  "measured_utc": "2026-10-06T20:41:15.046838+00:00",
+  "environment": {
+    "os": "ProductName:\t\tmacOS\nProductVersion:\t\t27.0.1\nBuildVersion:\t\t26A434",
+    "cpu": "Apple M5",
+    "memory_bytes": "17179869184",
+    "rust": "rustc 1.99.0 (b940084d7 2026-09-28)",
+    "cc": "Apple clang version 21.0.0 (clang-2100.3.34.2)\nTarget: arm64-apple-darwin27.0.0\nThread model: posix\nInstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin",
+    "reference_commit": "7925dff4026be06b4edfacdfe458887c2d6503ca",
+    "storage": "same temporary directory on internal disk; overwritten WAV output; page cache warm",
+    "concurrency": "sequential alternating paired runs; normal user desktop activity",
+    "build": "Rust release thin LTO; C reference CMake Release and harness -O3 -DNDEBUG"
+  },
+  "results": [
+    {
+      "workload": "small",
+      "fixture": "MC_Empty.aaf",
+      "mode": "parse",
+      "iterations": 200,
+      "pairs": [
+        {
+          "c": {
+            "seconds": 0.00062165,
+            "peak_rss": 3571712,
+            "peak_footprint": 2900352
+          },
+          "rust": {
+            "seconds": 0.000598158,
+            "peak_rss": 4947968,
+            "peak_footprint": 4129152
+          }
+        },
+        {
+          "rust": {
+            "seconds": 0.000599642,
+            "peak_rss": 4620288,
+            "peak_footprint": 3801472
+          },
+          "c": {
+            "seconds": 0.000626555,
+            "peak_rss": 3571712,
+            "peak_footprint": 2900352
+          }
+        },
+        {
+          "c": {
+            "seconds": 0.00061758,
+            "peak_rss": 3571712,
+            "peak_footprint": 2900352
+          },
+          "rust": {
+            "seconds": 0.000616144,
+            "peak_rss": 4571136,
+            "peak_footprint": 3752320
+          }
+        },
+        {
+          "rust": {
+            "seconds": 0.00061425,
+            "peak_rss": 4587520,
+            "peak_footprint": 3768704
+          },
+          "c": {
+            "seconds": 0.000637485,
+            "peak_rss": 3637248,
+            "peak_footprint": 2965888
+          }
+        },
+        {
+          "c": {
+            "seconds": 0.00063116,
+            "peak_rss": 3588096,
+            "peak_footprint": 2916736
+          },
+          "rust": {
+            "seconds": 0.00060015,
+            "peak_rss": 4603904,
+            "peak_footprint": 3785088
+          }
+        }
+      ],
+      "c_median_seconds": 0.000626555,
+      "rust_median_seconds": 0.00060015,
+      "paired_geomean_ratio": 0.9661342357553182,
+      "ratio_95_percent_ci": [
+        0.9504273769432005,
+        0.9821006677023526
+      ],
+      "peak_rss_ratio": 1.3603603603603605,
+      "runtime_pass": true,
+      "memory_pass": false
+    },
+    {
+      "workload": "large",
+      "fixture": "PT_Fades.aaf",
+      "mode": "parse",
+      "iterations": 200,
+      "pairs": [
+        {
+          "c": {
+            "seconds": 0.002009275,
+            "peak_rss": 4194304,
+            "peak_footprint": 3506560
+          },
+          "rust": {
+            "seconds": 0.001033687,
+            "peak_rss": 5898240,
+            "peak_footprint": 5063040
+          }
+        },
+        {
+          "rust": {
+            "seconds": 0.00108369,
+            "peak_rss": 5931008,
+            "peak_footprint": 5095808
+          },
+          "c": {
+            "seconds": 0.002027505,
+            "peak_rss": 4587520,
+            "peak_footprint": 3899776
+          }
+        },
+        {
+          "c": {
+            "seconds": 0.00200493,
+            "peak_rss": 4227072,
+            "peak_footprint": 3539328
+          },
+          "rust": {
+            "seconds": 0.001042411,
+            "peak_rss": 5898240,
+            "peak_footprint": 5063040
+          }
+        },
+        {
+          "rust": {
+            "seconds": 0.001030159,
+            "peak_rss": 5947392,
+            "peak_footprint": 5112192
+          },
+          "c": {
+            "seconds": 0.00199675,
+            "peak_rss": 4210688,
+            "peak_footprint": 3522944
+          }
+        },
+        {
+          "c": {
+            "seconds": 0.001997955,
+            "peak_rss": 4227072,
+            "peak_footprint": 3539328
+          },
+          "rust": {
+            "seconds": 0.00102841,
+            "peak_rss": 5881856,
+            "peak_footprint": 5046656
+          }
+        }
+      ],
+      "c_median_seconds": 0.00200493,
+      "rust_median_seconds": 0.001033687,
+      "paired_geomean_ratio": 0.5198508360140324,
+      "ratio_95_percent_ci": [
+        0.5125687164878177,
+        0.5272364134047017
+      ],
+      "peak_rss_ratio": 1.2964285714285715,
+      "runtime_pass": true,
+      "memory_pass": false
+    },
+    {
+      "workload": "multichannel",
+      "fixture": "DR_Multichannel_7.1_single_source.aaf",
+      "mode": "parse",
+      "iterations": 200,
+      "pairs": [
+        {
+          "c": {
+            "seconds": 0.00052941,
+            "peak_rss": 3407872,
+            "peak_footprint": 2720128
+          },
+          "rust": {
+            "seconds": 0.000515323,
+            "peak_rss": 4374528,
+            "peak_footprint": 3539328
+          }
+        },
+        {
+          "rust": {
+            "seconds": 0.000504994,
+            "peak_rss": 4390912,
+            "peak_footprint": 3555712
+          },
+          "c": {
+            "seconds": 0.000519915,
+            "peak_rss": 3391488,
+            "peak_footprint": 2703744
+          }
+        },
+        {
+          "c": {
+            "seconds": 0.00051299,
+            "peak_rss": 3391488,
+            "peak_footprint": 2687336
+          },
+          "rust": {
+            "seconds": 0.000504556,
+            "peak_rss": 4374528,
+            "peak_footprint": 3539328
+          }
+        },
+        {
+          "rust": {
+            "seconds": 0.000510131,
+            "peak_rss": 4374528,
+            "peak_footprint": 3539328
+          },
+          "c": {
+            "seconds": 0.000509355,
+            "peak_rss": 3424256,
+            "peak_footprint": 2736512
+          }
+        },
+        {
+          "c": {
+            "seconds": 0.00050971,
+            "peak_rss": 3391488,
+            "peak_footprint": 2703744
+          },
+          "rust": {
+            "seconds": 0.000508809,
+            "peak_rss": 4358144,
+            "peak_footprint": 3522944
+          }
+        }
+      ],
+      "c_median_seconds": 0.00051299,
+      "rust_median_seconds": 0.000508809,
+      "paired_geomean_ratio": 0.9855233104624936,
+      "ratio_95_percent_ci": [
+        0.9734405445539924,
+        0.9977560528978783
+      ],
+      "peak_rss_ratio": 1.2822966507177034,
+      "runtime_pass": true,
+      "memory_pass": false
+    },
+    {
+      "workload": "embedded",
+      "fixture": "PT_PCM_Internal.aaf",
+      "mode": "parse",
+      "iterations": 200,
+      "pairs": [
+        {
+          "c": {
+            "seconds": 0.000825395,
+            "peak_rss": 3522560,
+            "peak_footprint": 2851200
+          },
+          "rust": {
+            "seconds": 0.000548453,
+            "peak_rss": 4702208,
+            "peak_footprint": 3867008
+          }
+        },
+        {
+          "rust": {
+            "seconds": 0.00054643,
+            "peak_rss": 4587520,
+            "peak_footprint": 3752320
+          },
+          "c": {
+            "seconds": 0.00082648,
+            "peak_rss": 3522560,
+            "peak_footprint": 2851200
+          }
+        },
+        {
+          "c": {
+            "seconds": 0.000835745,
+            "peak_rss": 3571712,
+            "peak_footprint": 2900352
+          },
+          "rust": {
+            "seconds": 0.000572127,
+            "peak_rss": 4587520,
+            "peak_footprint": 3752320
+          }
+        },
+        {
+          "rust": {
+            "seconds": 0.000593065,
+            "peak_rss": 5423104,
+            "peak_footprint": 4587904
+          },
+          "c": {
+            "seconds": 0.001005515,
+            "peak_rss": 3751936,
+            "peak_footprint": 3080576
+          }
+        },
+        {
+          "c": {
+            "seconds": 0.000968555,
+            "peak_rss": 3751936,
+            "peak_footprint": 3080576
+          },
+          "rust": {
+            "seconds": 0.000588314,
+            "peak_rss": 5079040,
+            "peak_footprint": 4243840
+          }
+        }
+      ],
+      "c_median_seconds": 0.000835745,
+      "rust_median_seconds": 0.000572127,
+      "paired_geomean_ratio": 0.6404414210731788,
+      "ratio_95_percent_ci": [
+        0.6054906694809938,
+        0.6774096356890396
+      ],
+      "peak_rss_ratio": 1.445414847161572,
+      "runtime_pass": true,
+      "memory_pass": false
+    },
+    {
+      "workload": "embedded",
+      "fixture": "PT_PCM_Internal.aaf",
+      "mode": "extract",
+      "iterations": 200,
+      "pairs": [
+        {
+          "c": {
+            "seconds": 0.000131155,
+            "peak_rss": 2998272,
+            "peak_footprint": 2326912
+          },
+          "rust": {
+            "seconds": 8.9757e-05,
+            "peak_rss": 3735552,
+            "peak_footprint": 2900352
+          }
+        },
+        {
+          "rust": {
+            "seconds": 9.9626e-05,
+            "peak_rss": 3702784,
+            "peak_footprint": 2851176
+          },
+          "c": {
+            "seconds": 0.000102675,
+            "peak_rss": 2981888,
+            "peak_footprint": 2310528
+          }
+        },
+        {
+          "c": {
+            "seconds": 9.384e-05,
+            "peak_rss": 2965504,
+            "peak_footprint": 2294144
+          },
+          "rust": {
+            "seconds": 6.9134e-05,
+            "peak_rss": 3719168,
+            "peak_footprint": 2883968
+          }
+        },
+        {
+          "rust": {
+            "seconds": 5.1263e-05,
+            "peak_rss": 3702784,
+            "peak_footprint": 2867584
+          },
+          "c": {
+            "seconds": 6.2745e-05,
+            "peak_rss": 2949120,
+            "peak_footprint": 2277760
+          }
+        },
+        {
+          "c": {
+            "seconds": 6.4715e-05,
+            "peak_rss": 2949120,
+            "peak_footprint": 2277760
+          },
+          "rust": {
+            "seconds": 4.8889e-05,
+            "peak_rss": 3719168,
+            "peak_footprint": 2883968
+          }
+        }
+      ],
+      "c_median_seconds": 9.384e-05,
+      "rust_median_seconds": 6.9134e-05,
+      "paired_geomean_ratio": 0.7870190553481341,
+      "ratio_95_percent_ci": [
+        0.7003882762968037,
+        0.8843651649282983
+      ],
+      "peak_rss_ratio": 1.2459016393442623,
+      "runtime_pass": true,
+      "memory_pass": false
+    }
+  ],
+  "acceptance_pass": false
+}
