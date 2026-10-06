@@ -249,3 +249,59 @@ fn reject_oversized_property_stream_before_allocating_arena() {
         })
     ));
 }
+
+#[test]
+fn reject_pcm_descriptor_truncation_and_fractional_rates() {
+    let bytes = fs::read(
+        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("../../tooling/reference/test/aaf/PT_PCM_Internal.aaf"),
+    )
+    .unwrap();
+    let doc = Document::from_bytes(bytes.clone(), ReaderOptions::default()).unwrap();
+    let descriptor = doc
+        .objects()
+        .find(|o| o.class == AAFClassID_PCMDescriptor)
+        .unwrap();
+    let stream = doc
+        .cfb
+        .stream(doc.cfb.child(descriptor.node, "properties").unwrap())
+        .unwrap()
+        .to_vec()
+        .unwrap();
+    let positions: Vec<_> = bytes
+        .windows(stream.len())
+        .enumerate()
+        .filter(|(_, b)| *b == stream)
+        .map(|(i, _)| i)
+        .collect();
+    assert_eq!(
+        positions.len(),
+        1,
+        "fixture descriptor must be contiguous and unique"
+    );
+    for (pid, replacement) in [
+        (
+            PID_SoundDescriptor_Channels,
+            65536u32.to_le_bytes().to_vec(),
+        ),
+        (
+            PID_SoundDescriptor_QuantizationBits,
+            65535u32.to_le_bytes().to_vec(),
+        ),
+        (
+            PID_FileDescriptor_SampleRate,
+            [48000i32.to_le_bytes(), 2i32.to_le_bytes()].concat(),
+        ),
+        (
+            PID_FileDescriptor_SampleRate,
+            [(-48000i32).to_le_bytes(), 1i32.to_le_bytes()].concat(),
+        ),
+    ] {
+        let range = descriptor.property(pid).unwrap().bytes;
+        let mut modified = bytes.clone();
+        modified[positions[0] + range.start..positions[0] + range.end]
+            .copy_from_slice(&replacement);
+        let doc = Document::from_bytes(modified, ReaderOptions::default()).unwrap();
+        assert!(doc.composition().is_err(), "invalid PCM property {pid:04x}");
+    }
+}

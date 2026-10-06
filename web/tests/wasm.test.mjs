@@ -59,3 +59,25 @@ test('clip extraction rejects invalid indices and multiple source files', async 
     assert.throws(() => d.extract_essence(0, 'mp3'), /format must be/);
   } finally { d.free(); }
 });
+
+test('exact frame ranges, clip sources, and rational media metadata', async () => {
+  const d = new AafDocument(await read('PT_PCM_Internal.aaf'), false, false);
+  try {
+    const data = JSON.parse(d.inspect());
+    const essence = data.essences[0];
+    assert.equal(essence.editRate.numerator, essence.sampleRate);
+    assert.equal(essence.editRate.denominator, 1);
+    assert.ok(Number.isInteger(essence.sourceSlot));
+    const ti = data.tracks.findIndex(t => t.items.some(i => i.kind === 'clip'));
+    const ci = data.tracks[ti].items.findIndex(i => i.kind === 'clip');
+    assert.deepEqual(d.extract_clip_source(ti, ci, 0, 'wav'), d.extract_clip(ti, ci));
+    assert.throws(() => d.extract_clip_source(ti, ci, 0xffffffff, 'wav'), /invalid source index/);
+    const whole = d.extract_essence(0, 'wav');
+    const range = d.extract_range(0, 'wav', 1n, 17n);
+    const block = essence.channels * essence.sampleSize / 8;
+    assert.equal(range.length, 44 + 17 * block);
+    assert.deepEqual(range.slice(44), whole.slice(44 + block, 44 + 18 * block));
+    assert.throws(() => d.extract_range(0, 'wav', 0xffffffffffffffffn, 1n), /range|offset/);
+    assert.equal(d.extract_range(0, 'wav', 0n, 0n).length, 44);
+  } finally { d.free(); }
+});

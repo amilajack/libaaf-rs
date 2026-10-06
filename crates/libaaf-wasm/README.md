@@ -29,7 +29,7 @@ try {
 
 Constructor booleans enable ProTools rendered-fade recovery and sample-accurate-edit removal. `inspect()` returns JSON containing producer details, timecode, composition metadata, tracks, clips/transitions, curves, markers, essence descriptors, and diagnostics. `objects()` lists stable object IDs, paths and class names. `object(id)` returns property IDs, stored forms, original bytes and resolved reference IDs.
 
-`extract_essence(index, format)` accepts `original`, `wav`, and `bwav`. `extract_clip(trackIndex, itemIndex)` returns WAV bytes for a single-source embedded clip. Track/item indexes refer to the arrays in `inspect()`, including transition items. External media references cannot be extracted without access to those files; multichannel clips made from multiple essences must be handled per essence. Invalid input and missing media throw JavaScript `Error` objects. Bounds are checked before writing extraction data. Inspection rejects integers beyond JavaScript’s safe integer range.
+`extract_essence(index, format)` accepts `original`, `wav`, and `bwav`. `extract_clip(trackIndex, itemIndex)` returns WAV bytes for a single-source embedded clip. Track/item indexes refer to the arrays in `inspect()`, including transition items. External media references cannot be extracted without access to those files; `extract_clip_source(trackIndex, itemIndex, sourceIndex, format)` extracts one trimmed source from a multichannel clip. `extract_range(index, format, offset, length)` accepts exact frame counts as JavaScript `bigint`; zero length produces an empty WAV payload. Invalid input and missing media throw JavaScript `Error` objects. Bounds are checked before writing extraction data. Inspection rejects integers beyond JavaScript’s safe integer range.
 
 The constructor copies a host Uint8Array into owned wasm storage. Native extraction streams to a writer; browser extraction creates a returned Uint8Array because that is the JavaScript API boundary. Always free documents after use. The test app transfers input/output buffers to a worker to keep the UI responsive.
 
@@ -45,3 +45,5 @@ npm run preview --prefix web
 ```
 
 All 65 pinned fixtures import through wasm. Six extraction hashes match upstream. Local Downloads verification also passed five additional real AAF files, with C-equivalent track and clip counts. Private input files are not included in the repository.
+
+Inspection includes each essence’s edit rate, source slot, master mob, and origin. Curve points retain the numeric `time`/`value` fields and expose exact `timeRational`/`valueRational` numerator/denominator fields.

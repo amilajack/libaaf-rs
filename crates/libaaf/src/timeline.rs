@@ -934,6 +934,24 @@ impl Parser<'_> {
                 let name = utf16(o.raw(PID_EssenceData_Data)?.get(1..)?).ok()?;
                 doc.cfb.child(o.node, &name)
             });
+        // Validate descriptor widths before narrowing them. Malformed values
+        // must not silently wrap into a plausible audio format.
+        let channels = desc.u32(PID_SoundDescriptor_Channels).unwrap_or(0);
+        let sample_size = desc.u32(PID_SoundDescriptor_QuantizationBits).unwrap_or(0);
+        if format == EssenceFormat::Pcm {
+            if channels >= u32::from(u16::MAX) {
+                return Err(Error::invalid("PCM channel count", descriptor.0 as usize));
+            }
+            if sample_size >= u32::from(u16::MAX) {
+                return Err(Error::invalid("PCM sample size", descriptor.0 as usize));
+            }
+            let rate = desc
+                .rational(PID_FileDescriptor_SampleRate)
+                .unwrap_or_default();
+            if rate.denominator != 1 || rate.numerator < 0 {
+                return Err(Error::invalid("PCM sample rate", descriptor.0 as usize));
+            }
+        }
         let mut e = Essence {
             source_mob: source,
             source_slot: doc.object(slot).u32(PID_MobSlot_SlotID).unwrap_or(0),
@@ -944,13 +962,13 @@ impl Parser<'_> {
             channels: if format == EssenceFormat::Unknown {
                 0
             } else {
-                desc.u32(PID_SoundDescriptor_Channels).unwrap_or(0) as u16
+                u16::try_from(channels).unwrap_or(0)
             },
             sample_rate: 0,
             sample_size: if format == EssenceFormat::Unknown {
                 0
             } else {
-                desc.u32(PID_SoundDescriptor_QuantizationBits).unwrap_or(0) as u16
+                u16::try_from(sample_size).unwrap_or(0)
             },
             length: if video || format == EssenceFormat::Unknown {
                 0

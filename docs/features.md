@@ -55,6 +55,7 @@ Reference: `agfline/LibAAF@7925dff4026be06b4edfacdfe458887c2d6503ca`. Checkmarks
 - [x] Separate `libaaf-wasm` crate with wasm-bindgen, generated JavaScript/TypeScript interface
 - [x] Worker-based local AAF file/drop import, pinned examples, timeline/media/metadata/object views
 - [x] Inspection JSON export and embedded essence/single-source clip download
+- [x] WASM exact bigint frame ranges, per-source clip extraction, and rational curve/media metadata
 - [x] Chrome rendered verification for embedded audio, multichannel and marker examples
 - [x] Chrome clip download MD5 verified against upstream
 - [x] All 65 fixtures pass wasm import; all six extraction hashes pass
