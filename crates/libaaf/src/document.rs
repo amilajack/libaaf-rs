@@ -4,6 +4,7 @@ use std::{
     borrow::Cow,
     collections::{HashMap, HashSet},
     io::Read,
+    num::NonZeroU32,
     ops::Range,
     path::{Path, PathBuf},
 };
@@ -26,29 +27,46 @@ struct PropertyRecord {
     byte_len: u16,
 }
 impl PropertyRecord {
-    fn from_words(w: &[u64; 3]) -> Self {
+    // A property stream has at most u16::MAX properties, each with a u16
+    // length: its table plus payload fits in 33 bits. The 47-bit reference
+    // prefix permits more than 500 TiB of ObjectIds; reject overflow explicitly.
+    const OFFSET_MASK: u64 = (1 << 33) - 1;
+    const REFERENCE_MASK: u64 = (1 << 47) - 1;
+    fn id(w: &[u64; 2]) -> u16 {
+        (w[1] >> 47) as u16
+    }
+    fn reference_start(w: &[u64; 2]) -> usize {
+        (w[1] & Self::REFERENCE_MASK) as usize
+    }
+    fn from_words(w: &[u64; 2]) -> Self {
         Self {
-            byte_start: w[0] as usize,
-            reference_start: w[1] as usize,
-            id: w[2] as u16,
-            stored_form: (w[2] >> 16) as u16,
-            byte_len: (w[2] >> 32) as u16,
+            byte_start: (w[0] & Self::OFFSET_MASK) as usize,
+            reference_start: Self::reference_start(w),
+            id: Self::id(w),
+            stored_form: ((w[0] >> 49) as u16) | (((w[1] >> 63) as u16) << 15),
+            byte_len: (w[0] >> 33) as u16,
         }
     }
-    fn words(&self) -> [u64; 3] {
-        [
-            self.byte_start as u64,
-            self.reference_start as u64,
-            u64::from(self.id)
-                | (u64::from(self.stored_form) << 16)
-                | (u64::from(self.byte_len) << 32),
-        ]
+    fn words(&self) -> Result<[u64; 2]> {
+        if self.byte_start as u64 > Self::OFFSET_MASK
+            || self.reference_start as u64 > Self::REFERENCE_MASK
+        {
+            return Err(Error::invalid("property record width", self.byte_start));
+        }
+        Ok([
+            self.byte_start as u64
+                | (u64::from(self.byte_len) << 33)
+                | (u64::from(self.stored_form & 0x7fff) << 49),
+            self.reference_start as u64
+                | (u64::from(self.id) << 47)
+                | (u64::from(self.stored_form >> 15) << 63),
+        ])
     }
-
     fn bytes(&self) -> Range<usize> {
         self.byte_start..self.byte_start + usize::from(self.byte_len)
     }
 }
+
 #[derive(Debug)]
 struct ObjectRecord {
     data: Range<usize>,
@@ -57,18 +75,17 @@ struct ObjectRecord {
     property_count: u16,
 }
 impl ObjectRecord {
-    fn from_words(w: &[u64; 4]) -> Self {
+    fn from_words(w: &[u64; 3], data_end: usize) -> Self {
         Self {
-            data: w[0] as usize..(w[0] + w[1]) as usize,
-            property_start: w[2] as usize,
-            node: w[3] as u32,
-            property_count: (w[3] >> 32) as u16,
+            data: w[0] as usize..data_end,
+            property_start: w[1] as usize,
+            node: w[2] as u32,
+            property_count: (w[2] >> 32) as u16,
         }
     }
-    fn words(&self) -> [u64; 4] {
+    fn words(&self) -> [u64; 3] {
         [
             self.data.start as u64,
-            self.data.len() as u64,
             self.property_start as u64,
             u64::from(self.node) | (u64::from(self.property_count) << 32),
         ]
@@ -93,7 +110,7 @@ pub struct Object<'a> {
     pub node: u32,
     pub class: Uid,
     pub parent: Option<ObjectId>,
-    properties: &'a [[u64; 3]],
+    properties: &'a [[u64; 2]],
     reference_end: usize,
     data: &'a [u8],
     references: &'a [ObjectId],
@@ -114,7 +131,7 @@ impl<'a> Object<'a> {
                 references: &references[p.reference_start
                     ..properties
                         .get(index + 1)
-                        .map_or(reference_end, |w| w[1] as usize)],
+                        .map_or(reference_end, PropertyRecord::reference_start)],
             }
         })
     }
@@ -124,18 +141,22 @@ impl<'a> Object<'a> {
     pub fn raw(&self, pid: u16) -> Option<&'a [u8]> {
         self.properties
             .iter()
-            .find(|w| w[2] as u16 == pid)
+            .find(|w| PropertyRecord::id(w) == pid)
             .map(|w| &self.data[PropertyRecord::from_words(w).bytes()])
     }
     pub fn references(&self, pid: u16) -> &'a [ObjectId] {
-        let Some(index) = self.properties.iter().position(|w| w[2] as u16 == pid) else {
+        let Some(index) = self
+            .properties
+            .iter()
+            .position(|w| PropertyRecord::id(w) == pid)
+        else {
             return &[];
         };
-        let start = self.properties[index][1] as usize;
+        let start = PropertyRecord::reference_start(&self.properties[index]);
         let end = self
             .properties
             .get(index + 1)
-            .map_or(self.reference_end, |w| w[1] as usize);
+            .map_or(self.reference_end, PropertyRecord::reference_start);
         &self.references[start..end]
     }
     pub fn reference(&self, pid: u16) -> Option<ObjectId> {
@@ -184,13 +205,14 @@ pub struct ClassDefinition {
 pub struct Document {
     pub cfb: CompoundFile,
     pub path: Option<PathBuf>,
-    // One allocation contains four-word object records, three-word property
+    // One allocation contains three-word object records, two-word property
     // records, then original bytes padded to a u64 boundary. Records are written
     // only from checked usize/u16/u32 values; no wire bytes are cast to structs.
     metadata: Box<[u64]>,
     object_count: usize,
     property_words: usize,
     data_words: usize,
+    data_size: usize,
     references: Box<[ObjectId]>,
     pub classes: Vec<ClassDefinition>,
     pub root: ObjectId,
@@ -200,7 +222,7 @@ pub struct Document {
     pub identification: Option<ObjectId>,
     pub options: ReaderOptions,
     pub diagnostics: Vec<Diagnostic>,
-    node_objects: Vec<Option<ObjectId>>,
+    node_objects: Vec<Option<NonZeroU32>>,
     pub(crate) mobs: HashMap<Vec<u8>, ObjectId>,
     identifiers: HashMap<(u16, [u8; 16]), ObjectId>,
     wide_identifiers: HashMap<(u16, Box<[u8]>), ObjectId>,
@@ -249,10 +271,10 @@ impl Document {
         }
         let object_count = streams.len();
         let property_words = object_count
-            .checked_mul(4)
+            .checked_mul(3)
             .ok_or_else(|| Error::invalid("object arena size", 0))?;
         let data_words = property_count
-            .checked_mul(3)
+            .checked_mul(2)
             .and_then(|n| n.checked_add(property_words))
             .ok_or_else(|| Error::invalid("property arena size", 0))?;
         let word_count = data_words
@@ -273,7 +295,13 @@ impl Document {
                 u32::try_from(object_index)
                     .map_err(|_| Error::invalid("object ID", object_index))?,
             );
-            node_objects[node as usize] = Some(id);
+            node_objects[node as usize] = Some(
+                NonZeroU32::new(
+                    id.0.checked_add(1)
+                        .ok_or_else(|| Error::invalid("object index", object_index))?,
+                )
+                .unwrap(),
+            );
             let (records, raw_words) = metadata.split_at_mut(data_words);
             let (object_records, property_records) = records.split_at_mut(property_words);
             // Safe u64 -> u8 casts: source is initialized, destination alignment
@@ -301,7 +329,7 @@ impl Document {
                 property_count: count,
                 data: data_position..data_end,
             };
-            object_records[object_index * 4..object_index * 4 + 4].copy_from_slice(&object.words());
+            object_records[object_index * 3..object_index * 3 + 3].copy_from_slice(&object.words());
             let mut offset = 4 + usize::from(count) * 6;
             let mut seen = HashSet::new();
             for i in 0..usize::from(count) {
@@ -310,11 +338,11 @@ impl Document {
                 let form = u16_at(data, at + 2)?;
                 let len = u16_at(data, at + 4)?;
                 let duplicate = if count <= 16 {
-                    property_records[object.property_start * 3..property_position * 3]
-                        .as_chunks::<3>()
+                    property_records[object.property_start * 2..property_position * 2]
+                        .as_chunks::<2>()
                         .0
                         .iter()
-                        .any(|w| w[2] as u16 == pid)
+                        .any(|w| PropertyRecord::id(w) == pid)
                 } else {
                     !seen.insert(pid)
                 };
@@ -329,32 +357,38 @@ impl Document {
                     byte_len: len,
                     reference_start: 0,
                 };
-                property_records[property_position * 3..property_position * 3 + 3]
-                    .copy_from_slice(&p.words());
+                property_records[property_position * 2..property_position * 2 + 2]
+                    .copy_from_slice(&p.words()?);
                 property_position += 1;
                 offset += usize::from(len);
             }
             data_position = data_end;
         }
-        let root = node_objects[0].ok_or_else(|| Error::Missing {
-            context: "AAF root",
-            name: "properties".into(),
-        })?;
+        let root = node_objects[0]
+            .map(|id| ObjectId(id.get() - 1))
+            .ok_or_else(|| Error::Missing {
+                context: "AAF root",
+                name: "properties".into(),
+            })?;
         let mut diagnostics = Vec::new();
         let mut identifiers = HashMap::new();
         let mut wide_identifiers = HashMap::new();
         let mut references = Vec::new();
         for object_index in 0..object_count {
+            let records = metadata[..property_words].as_chunks::<3>().0;
             let obj = ObjectRecord::from_words(
-                &metadata[..property_words].as_chunks::<4>().0[object_index],
+                &records[object_index],
+                records
+                    .get(object_index + 1)
+                    .map_or(data_size, |w| w[0] as usize),
             );
             for property_index in obj.properties() {
-                let at = property_words + property_index * 3;
-                let mut p = PropertyRecord::from_words(metadata[at..at + 3].try_into().unwrap());
+                let at = property_words + property_index * 2;
+                let mut p = PropertyRecord::from_words(metadata[at..at + 2].try_into().unwrap());
                 // Starts form a monotone prefix index, including empty lists.
                 // The next property's start (or arena length) supplies the end.
                 p.reference_start = references.len();
-                metadata[at..at + 3].copy_from_slice(&p.words());
+                metadata[at..at + 2].copy_from_slice(&p.words()?);
                 if !matches!(p.stored_form, 0x22 | 0x32 | 0x3a) {
                     continue;
                 }
@@ -365,6 +399,7 @@ impl Document {
                     if let Some(id) = cfb
                         .child(obj.node, &name)
                         .and_then(|n| node_objects[n as usize])
+                        .map(|id| ObjectId(id.get() - 1))
                     {
                         references.push(id);
                     } else {
@@ -401,6 +436,7 @@ impl Document {
                         if let Some(id) = cfb
                             .child(obj.node, &target)
                             .and_then(|n| node_objects[n as usize])
+                            .map(|id| ObjectId(id.get() - 1))
                         {
                             references.push(id);
                             if set {
@@ -431,8 +467,9 @@ impl Document {
             object_count,
             property_words,
             data_words,
+            data_size,
             references: references.into_boxed_slice(),
-            classes: Vec::new(),
+            classes: Vec::with_capacity(STANDARD_CLASSES.len()),
             root,
             header: root,
             dictionary: root,
@@ -444,7 +481,7 @@ impl Document {
             mobs: HashMap::new(),
             identifiers,
             wide_identifiers,
-            class_index: HashMap::new(),
+            class_index: HashMap::with_capacity(STANDARD_CLASSES.len()),
         };
         doc.header = doc.required_ref(root, PID_Root_Header)?;
         doc.dictionary = doc.required_ref(doc.header, PID_Header_Dictionary)?;
@@ -496,15 +533,19 @@ impl Document {
         if id.0 as usize >= self.object_count {
             return None;
         }
+        let records = self.metadata[..self.property_words].as_chunks::<3>().0;
         let o = ObjectRecord::from_words(
-            &self.metadata[..self.property_words].as_chunks::<4>().0[id.0 as usize],
+            &records[id.0 as usize],
+            records
+                .get(id.0 as usize + 1)
+                .map_or(self.data_size, |w| w[0] as usize),
         );
         let all_properties = self.metadata[self.property_words..self.data_words]
-            .as_chunks::<3>()
+            .as_chunks::<2>()
             .0;
         let reference_end = all_properties
             .get(o.properties().end)
-            .map_or(self.references.len(), |w| w[1] as usize);
+            .map_or(self.references.len(), PropertyRecord::reference_start);
         let properties = &all_properties[o.properties()];
         let raw = bytemuck::cast_slice::<u64, u8>(&self.metadata[self.data_words..]);
         Some(Object {
@@ -517,7 +558,8 @@ impl Document {
                 .get(o.node as usize)
                 .unwrap()
                 .parent
-                .and_then(|node| self.node_objects[node as usize]),
+                .and_then(|node| self.node_objects[node as usize])
+                .map(|id| ObjectId(id.get() - 1)),
             properties,
             reference_end,
             data: &raw[o.data],
@@ -529,7 +571,7 @@ impl Document {
             .get(id as usize)
             .copied()
             .flatten()
-            .map(|id| self.object(id))
+            .map(|id| self.object(ObjectId(id.get() - 1)))
     }
     pub fn weak_target(&self, b: &[u8]) -> Option<ObjectId> {
         let pid = u16_at(b, 2).ok()?;
@@ -840,6 +882,7 @@ mod tests {
                 reference_start,
             }
             .words()
+            .unwrap()
         });
         let references = [ObjectId(4), ObjectId(8), ObjectId(12)];
         let object = Object {
@@ -866,26 +909,43 @@ mod tests {
     }
 
     #[test]
+    #[cfg(target_pointer_width = "64")]
+    fn packed_property_rejects_width_overflow() {
+        let mut p = PropertyRecord {
+            id: 0,
+            stored_form: 0,
+            byte_start: 0,
+            byte_len: 0,
+            reference_start: 0,
+        };
+        p.byte_start = (PropertyRecord::OFFSET_MASK + 1) as usize;
+        assert!(p.words().is_err());
+        p.byte_start = 0;
+        p.reference_start = (PropertyRecord::REFERENCE_MASK + 1) as usize;
+        assert!(p.words().is_err());
+    }
+
+    #[test]
     fn packed_metadata_preserves_full_field_widths() {
         let property = PropertyRecord {
             id: u16::MAX,
             stored_form: u16::MAX - 1,
-            byte_start: usize::MAX / 2,
+            byte_start: (PropertyRecord::OFFSET_MASK as usize).min(usize::MAX - u16::MAX as usize),
             byte_len: u16::MAX,
-            reference_start: usize::MAX,
+            reference_start: PropertyRecord::REFERENCE_MASK as usize,
         };
-        let decoded = PropertyRecord::from_words(&property.words());
+        let decoded = PropertyRecord::from_words(&property.words().unwrap());
         assert_eq!(decoded.id, u16::MAX);
         assert_eq!(decoded.stored_form, u16::MAX - 1);
         assert_eq!(decoded.bytes(), property.bytes());
-        assert_eq!(decoded.reference_start, usize::MAX);
+        assert_eq!(decoded.reference_start, property.reference_start);
         let object = ObjectRecord {
             data: usize::MAX / 2..usize::MAX / 2 + 17,
             property_start: 0,
             property_count: u16::MAX,
             node: u32::MAX - 1,
         };
-        let decoded = ObjectRecord::from_words(&object.words());
+        let decoded = ObjectRecord::from_words(&object.words(), object.data.end);
         assert_eq!(decoded.data, object.data);
         assert_eq!(decoded.node, u32::MAX - 1);
         assert_eq!(decoded.properties(), 0..u16::MAX as usize);

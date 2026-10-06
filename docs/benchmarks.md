@@ -122,3 +122,11 @@ The 4 KiB native cache, compact reference prefixes, inline 16-byte identifier ke
 Every runtime gate passes. Extraction and the large local session pass memory; the four upstream parsing workloads still exceed the +10% memory gate. Normal desktop activity continued, so this remains diagnostic rather than final controlled acceptance.
 
 Both benchmark executables now report integer nanoseconds per operation; the driver converts these to seconds. This avoids loading floating-point result-formatting code into the processes whose peak RSS is measured. The timed library work and raw process RSS measurement are unchanged; no baseline is subtracted. A five-pair diagnostic run still failed the overall memory gate.
+
+## Compact arenas and equivalent benchmark executables
+
+Property records use two checked u64 words instead of three, preserving all 16 bits of the property ID, stored form and length. Their byte offset has 33 bits (enough for a u16-count/u16-length property table); reference prefixes have 47 bits and reject overflow. Object records use three words with the next record supplying the data end. Native node-to-object indexes use four-byte nonzero indexes internally; public IDs are unchanged. Directory name lengths use one byte after checked UTF-8 decoding. No unsafe code is introduced.
+
+A held `PT_Fades.aaf` profile measured 910,832 allocated bytes / 734 allocations for Rust, versus 1,120,512 bytes / 14,841 allocations for C. These held allocations are distinct from process peak RSS. Release executables now use full LTO and panic-abort; recoverable reader errors remain Results, and downstream library users select their own Cargo panic policy. Rust inspection now has a separate development executable, matching the C harness arrangement; both timing executables report u64 nanoseconds.
+
+The five-pair diagnostic run in [benchmark-compact-arenas.json](benchmark-compact-arenas.json) passes its runtime and memory gates. This short run does not establish final acceptance: earlier 21-pair runs still exceeded memory limits. A final longer run covering the private large workload remains required.

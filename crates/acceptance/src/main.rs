@@ -18,31 +18,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         return Err("iterations must be positive".into());
     }
     let elapsed = match args[1].as_str() {
-        "inspect" => {
-            let d = Document::open(&args[2], ReaderOptions::default())?;
-            for o in d.objects() {
-                print!("O\t{}\t", o.node);
-                for b in o.class.0 {
-                    print!("{b:02x}");
-                }
-                println!();
-                for p in o.properties() {
-                    print!("P\t{}\t{:04x}\t{:04x}\t", o.node, p.id, p.stored_form);
-                    for b in o.raw(p.id).unwrap_or_default() {
-                        print!("{b:02x}");
-                    }
-                    print!("\t");
-                    for (i, &id) in p.references.iter().enumerate() {
-                        if i != 0 {
-                            print!(",");
-                        }
-                        print!("{}", d.object(id).node);
-                    }
-                    println!();
-                }
-            }
-            return Ok(());
-        }
         "parse" => {
             let start = Instant::now();
             for _ in 0..iterations {
@@ -87,6 +62,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     };
     // Emit integer nanoseconds so result formatting does not load floating-point
     // formatting code into the process whose peak memory is being measured.
-    println!("{}", elapsed.as_nanos() / iterations as u128);
+    let nanoseconds = u64::try_from(elapsed.as_nanos() / iterations as u128)?;
+    println!("{nanoseconds}");
     Ok(())
 }

@@ -52,7 +52,7 @@ impl AafDocument {
     /// Parse a Uint8Array. Optional ProTools recovery matches native ReaderOptions.
     #[wasm_bindgen(constructor)]
     pub fn new(
-        bytes: &[u8],
+        bytes: Vec<u8>,
         recover_fades: bool,
         remove_sample_edits: bool,
     ) -> Result<AafDocument, JsValue> {
@@ -61,7 +61,7 @@ impl AafDocument {
             remove_sample_accurate_edits: remove_sample_edits,
             ..ReaderOptions::default()
         };
-        let document = Document::from_bytes(bytes.to_vec(), options).map_err(js_error)?;
+        let document = Document::from_bytes(bytes, options).map_err(js_error)?;
         let composition = document.composition().map_err(js_error)?;
         Ok(Self {
             document,

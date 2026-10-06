@@ -11,7 +11,7 @@ output.mkdir(parents=True, exist_ok=True)
 results = []
 for fixture in sorted((ROOT / 'tooling/reference/test/aaf').glob('*.aaf')):
     c = subprocess.run([str(ROOT / 'tooling/reference-build/inspection'), str(fixture)], capture_output=True, check=True, text=True)
-    rust = subprocess.run([str(ROOT / 'target/release/libaaf-acceptance'), 'inspect', str(fixture), '1', '.'], capture_output=True, check=True, text=True)
+    rust = subprocess.run([str(ROOT / 'target/release/inspection'), str(fixture)], capture_output=True, check=True, text=True)
     a, b = sorted(c.stdout.splitlines()), sorted(rust.stdout.splitlines())
     ok = a == b
     results.append({'fixture': fixture.name, 'pass': ok, 'reference_records': len(a), 'rust_records': len(b)})

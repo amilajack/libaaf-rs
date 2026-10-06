@@ -147,7 +147,8 @@ pub struct Header {
 #[derive(Clone, Debug)]
 pub struct NodeRecord {
     pub id: u32,
-    name: Range<usize>,
+    name_start: usize,
+    name_len: u8,
     pub kind: u8,
     pub color: u8,
     pub left: u32,
@@ -160,6 +161,11 @@ pub struct NodeRecord {
     pub start: u32,
     pub size: u64,
     pub parent: Option<u32>,
+}
+impl NodeRecord {
+    fn name_range(&self) -> Range<usize> {
+        self.name_start..self.name_start + usize::from(self.name_len)
+    }
 }
 /// Borrowed directory entry; its name is stored in the compound file's string arena.
 #[derive(Clone, Copy, Debug)]
@@ -190,13 +196,13 @@ impl Nodes {
         let record = self.records.get(index)?;
         Some(Node {
             record,
-            name: &self.names[record.name.clone()],
+            name: &self.names[record.name_range()],
         })
     }
     pub fn iter(&self) -> impl ExactSizeIterator<Item = Node<'_>> + DoubleEndedIterator + '_ {
         self.records.iter().map(|record| Node {
             record,
-            name: &self.names[record.name.clone()],
+            name: &self.names[record.name_range()],
         })
     }
 }
@@ -418,7 +424,9 @@ impl CompoundFile {
                 };
                 file.nodes.records.push(NodeRecord {
                     id: i as u32,
-                    name: first_name..file.nodes.names.len(),
+                    name_start: first_name,
+                    name_len: u8::try_from(file.nodes.names.len() - first_name)
+                        .map_err(|_| Error::invalid("directory name length", i * 128))?,
                     kind,
                     color: b[67],
                     left: u32_at(b, 68)?,
@@ -465,7 +473,7 @@ impl CompoundFile {
             file.children.push(ChildIndex {
                 parent,
                 node: id,
-                name_hash: folded_hash(&file.name_hasher, &file.nodes.names[n.name.clone()]),
+                name_hash: folded_hash(&file.name_hasher, &file.nodes.names[n.name_range()]),
             });
             stack.push((n.right, parent));
             stack.push((n.left, parent));
@@ -553,7 +561,12 @@ impl CompoundFile {
         Ok(ids)
     }
     pub fn child(&self, parent: u32, name: &str) -> Option<u32> {
-        let key = (parent, folded_hash(&self.name_hasher, name));
+        self.child_by_hash(parent, name, folded_hash(&self.name_hasher, name))
+    }
+    fn child_by_hash(&self, parent: u32, name: &str, hash: u64) -> Option<u32> {
+        // Hashes narrow the search only. Full case-folded names distinguish
+        // collisions, including adversarial names from the file.
+        let key = (parent, hash);
         let mut index = self
             .children
             .binary_search_by_key(&key, |entry| (entry.parent, entry.name_hash))
@@ -797,6 +810,26 @@ impl Read for StreamReader<'_, '_> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn directory_hash_collisions_preserve_exact_lookup() {
+        let path = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../../tooling/reference/test/aaf/MC_Empty.aaf");
+        let mut file = CompoundFile::open(path).unwrap();
+        for entry in &mut file.children {
+            entry.name_hash = 0;
+        }
+        file.children.sort_unstable_by_key(|entry| entry.parent);
+        for entry in &file.children {
+            let name = file.nodes.get(entry.node as usize).unwrap().name;
+            assert_eq!(file.child_by_hash(entry.parent, name, 0), Some(entry.node));
+            assert_eq!(
+                file.child_by_hash(entry.parent, &name.to_uppercase(), 0),
+                Some(entry.node)
+            );
+        }
+        assert_eq!(file.child_by_hash(0, "missing", 0), None);
+    }
+
     #[test]
     fn file_reads_report_truncation() {
         let path = std::env::temp_dir().join(format!("libaaf-backing-{}", std::process::id()));

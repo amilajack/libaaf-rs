@@ -1,0 +1,417 @@
+{
+  "measured_utc": "2026-10-06T23:08:43.382038+00:00",
+  "environment": {
+    "os": "ProductName:\t\tmacOS\nProductVersion:\t\t27.0.1\nBuildVersion:\t\t26A434",
+    "cpu": "Apple M5",
+    "memory_bytes": "17179869184",
+    "rust": "rustc 1.99.0 (b940084d7 2026-09-28)",
+    "cc": "Apple clang version 21.0.0 (clang-2100.3.34.2)\nTarget: arm64-apple-darwin27.0.0\nThread model: posix\nInstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin",
+    "reference_commit": "7925dff4026be06b4edfacdfe458887c2d6503ca",
+    "storage": "same temporary directory on internal disk; overwritten WAV output; page cache warm",
+    "concurrency": "sequential alternating paired runs; normal user desktop activity",
+    "build": "Rust release fat LTO, panic abort; C reference CMake Release and harness -O3 -DNDEBUG"
+  },
+  "results": [
+    {
+      "workload": "small",
+      "fixture": "MC_Empty.aaf",
+      "input_bytes": 352256,
+      "input_sha256": "dfdd26dff0755f2d1995dc415bd888bd7afa81b3627416e73aeddfadc662742b",
+      "mode": "parse",
+      "iterations": 200,
+      "pairs": [
+        {
+          "c": {
+            "seconds": 0.00073836,
+            "peak_rss": 3833856,
+            "peak_footprint": 3162496
+          },
+          "rust": {
+            "seconds": 0.0006326,
+            "peak_rss": 4014080,
+            "peak_footprint": 3260800
+          }
+        },
+        {
+          "rust": {
+            "seconds": 0.000633755,
+            "peak_rss": 4030464,
+            "peak_footprint": 3277184
+          },
+          "c": {
+            "seconds": 0.0007062,
+            "peak_rss": 3653632,
+            "peak_footprint": 2982272
+          }
+        },
+        {
+          "c": {
+            "seconds": 0.000704285,
+            "peak_rss": 3850240,
+            "peak_footprint": 3178880
+          },
+          "rust": {
+            "seconds": 0.00064509,
+            "peak_rss": 3981312,
+            "peak_footprint": 3228032
+          }
+        },
+        {
+          "rust": {
+            "seconds": 0.000657917,
+            "peak_rss": 4014080,
+            "peak_footprint": 3260800
+          },
+          "c": {
+            "seconds": 0.000713825,
+            "peak_rss": 3883008,
+            "peak_footprint": 3211648
+          }
+        },
+        {
+          "c": {
+            "seconds": 0.00070085,
+            "peak_rss": 3637248,
+            "peak_footprint": 2965888
+          },
+          "rust": {
+            "seconds": 0.000697351,
+            "peak_rss": 4014080,
+            "peak_footprint": 3260800
+          }
+        }
+      ],
+      "c_median_seconds": 0.0007062,
+      "rust_median_seconds": 0.00064509,
+      "paired_geomean_ratio": 0.9162763085383003,
+      "ratio_95_percent_ci": [
+        0.873725029432199,
+        0.9608998773151486
+      ],
+      "peak_rss_ratio": 1.0379746835443038,
+      "runtime_pass": true,
+      "memory_pass": true
+    },
+    {
+      "workload": "large",
+      "fixture": "PT_Fades.aaf",
+      "input_bytes": 713728,
+      "input_sha256": "6c0c097e54f2c5a191246bb92bfdbc55834eeda1a9c8fa9506c89ad459e96a12",
+      "mode": "parse",
+      "iterations": 200,
+      "pairs": [
+        {
+          "c": {
+            "seconds": 0.00224859,
+            "peak_rss": 4636672,
+            "peak_footprint": 3948928
+          },
+          "rust": {
+            "seconds": 0.001723957,
+            "peak_rss": 4800512,
+            "peak_footprint": 4030848
+          }
+        },
+        {
+          "rust": {
+            "seconds": 0.001689605,
+            "peak_rss": 4882432,
+            "peak_footprint": 4112768
+          },
+          "c": {
+            "seconds": 0.002281225,
+            "peak_rss": 4653056,
+            "peak_footprint": 3965312
+          }
+        },
+        {
+          "c": {
+            "seconds": 0.002354805,
+            "peak_rss": 4636672,
+            "peak_footprint": 3948928
+          },
+          "rust": {
+            "seconds": 0.001688005,
+            "peak_rss": 4915200,
+            "peak_footprint": 4145536
+          }
+        },
+        {
+          "rust": {
+            "seconds": 0.001640115,
+            "peak_rss": 4800512,
+            "peak_footprint": 4014440
+          },
+          "c": {
+            "seconds": 0.002230805,
+            "peak_rss": 4669440,
+            "peak_footprint": 3981696
+          }
+        },
+        {
+          "c": {
+            "seconds": 0.00238087,
+            "peak_rss": 4440064,
+            "peak_footprint": 3752320
+          },
+          "rust": {
+            "seconds": 0.001660426,
+            "peak_rss": 4882432,
+            "peak_footprint": 4112768
+          }
+        }
+      ],
+      "c_median_seconds": 0.002281225,
+      "rust_median_seconds": 0.001688005,
+      "paired_geomean_ratio": 0.7309870888212023,
+      "ratio_95_percent_ci": [
+        0.7085203306762915,
+        0.7541662545000792
+      ],
+      "peak_rss_ratio": 1.0526315789473684,
+      "runtime_pass": true,
+      "memory_pass": true
+    },
+    {
+      "workload": "multichannel",
+      "fixture": "DR_Multichannel_7.1_single_source.aaf",
+      "input_bytes": 278528,
+      "input_sha256": "8ad29d43fc64908dce09ffc0fdd6226aadb116cd4b4736088431644e577d5108",
+      "mode": "parse",
+      "iterations": 200,
+      "pairs": [
+        {
+          "c": {
+            "seconds": 0.000572705,
+            "peak_rss": 3604480,
+            "peak_footprint": 2916736
+          },
+          "rust": {
+            "seconds": 0.00059744,
+            "peak_rss": 3883008,
+            "peak_footprint": 3113344
+          }
+        },
+        {
+          "rust": {
+            "seconds": 0.000589973,
+            "peak_rss": 3915776,
+            "peak_footprint": 3146112
+          },
+          "c": {
+            "seconds": 0.000582795,
+            "peak_rss": 3620864,
+            "peak_footprint": 2933120
+          }
+        },
+        {
+          "c": {
+            "seconds": 0.000591375,
+            "peak_rss": 3555328,
+            "peak_footprint": 2867584
+          },
+          "rust": {
+            "seconds": 0.000585784,
+            "peak_rss": 3899392,
+            "peak_footprint": 3129728
+          }
+        },
+        {
+          "rust": {
+            "seconds": 0.0005743,
+            "peak_rss": 3850240,
+            "peak_footprint": 3080576
+          },
+          "c": {
+            "seconds": 0.000585375,
+            "peak_rss": 3604480,
+            "peak_footprint": 2916736
+          }
+        },
+        {
+          "c": {
+            "seconds": 0.000580715,
+            "peak_rss": 3555328,
+            "peak_footprint": 2867584
+          },
+          "rust": {
+            "seconds": 0.000586954,
+            "peak_rss": 3817472,
+            "peak_footprint": 3047808
+          }
+        }
+      ],
+      "c_median_seconds": 0.000582795,
+      "rust_median_seconds": 0.000586954,
+      "paired_geomean_ratio": 1.0073490255426027,
+      "ratio_95_percent_ci": [
+        0.9866740838799636,
+        1.0284571935560067
+      ],
+      "peak_rss_ratio": 1.081447963800905,
+      "runtime_pass": true,
+      "memory_pass": true
+    },
+    {
+      "workload": "embedded",
+      "fixture": "PT_PCM_Internal.aaf",
+      "input_bytes": 371712,
+      "input_sha256": "c58ee8aaac1bda1959e17d5ba5a7c9137f8fe06a39e2b2433f6199ad96a9846a",
+      "mode": "parse",
+      "iterations": 200,
+      "pairs": [
+        {
+          "c": {
+            "seconds": 0.001001245,
+            "peak_rss": 3784704,
+            "peak_footprint": 3113344
+          },
+          "rust": {
+            "seconds": 0.000831125,
+            "peak_rss": 3981312,
+            "peak_footprint": 3228032
+          }
+        },
+        {
+          "rust": {
+            "seconds": 0.00083105,
+            "peak_rss": 3964928,
+            "peak_footprint": 3211648
+          },
+          "c": {
+            "seconds": 0.00098249,
+            "peak_rss": 3850240,
+            "peak_footprint": 3178880
+          }
+        },
+        {
+          "c": {
+            "seconds": 0.001036795,
+            "peak_rss": 3850240,
+            "peak_footprint": 3178880
+          },
+          "rust": {
+            "seconds": 0.00092477,
+            "peak_rss": 4112384,
+            "peak_footprint": 3359104
+          }
+        },
+        {
+          "rust": {
+            "seconds": 0.001061933,
+            "peak_rss": 4096000,
+            "peak_footprint": 3342720
+          },
+          "c": {
+            "seconds": 0.001172,
+            "peak_rss": 3784704,
+            "peak_footprint": 3113344
+          }
+        },
+        {
+          "c": {
+            "seconds": 0.00108874,
+            "peak_rss": 3817472,
+            "peak_footprint": 3146112
+          },
+          "rust": {
+            "seconds": 0.000864092,
+            "peak_rss": 3997696,
+            "peak_footprint": 3244416
+          }
+        }
+      ],
+      "c_median_seconds": 0.001036795,
+      "rust_median_seconds": 0.000864092,
+      "paired_geomean_ratio": 0.8525389503471237,
+      "ratio_95_percent_ci": [
+        0.8131525750950911,
+        0.8938330691186458
+      ],
+      "peak_rss_ratio": 1.0680851063829788,
+      "runtime_pass": true,
+      "memory_pass": true
+    },
+    {
+      "workload": "embedded",
+      "fixture": "PT_PCM_Internal.aaf",
+      "input_bytes": 371712,
+      "input_sha256": "c58ee8aaac1bda1959e17d5ba5a7c9137f8fe06a39e2b2433f6199ad96a9846a",
+      "mode": "extract",
+      "iterations": 200,
+      "pairs": [
+        {
+          "c": {
+            "seconds": 8.8165e-05,
+            "peak_rss": 2998272,
+            "peak_footprint": 2326912
+          },
+          "rust": {
+            "seconds": 6.0471e-05,
+            "peak_rss": 3080192,
+            "peak_footprint": 2294144
+          }
+        },
+        {
+          "rust": {
+            "seconds": 6.6849e-05,
+            "peak_rss": 3096576,
+            "peak_footprint": 2310528
+          },
+          "c": {
+            "seconds": 8.942e-05,
+            "peak_rss": 3047424,
+            "peak_footprint": 2376064
+          }
+        },
+        {
+          "c": {
+            "seconds": 8.972e-05,
+            "peak_rss": 3047424,
+            "peak_footprint": 2376064
+          },
+          "rust": {
+            "seconds": 5.8869e-05,
+            "peak_rss": 3080192,
+            "peak_footprint": 2294144
+          }
+        },
+        {
+          "rust": {
+            "seconds": 5.3298e-05,
+            "peak_rss": 3047424,
+            "peak_footprint": 2261376
+          },
+          "c": {
+            "seconds": 0.000124225,
+            "peak_rss": 3047424,
+            "peak_footprint": 2376064
+          }
+        },
+        {
+          "c": {
+            "seconds": 9.57e-05,
+            "peak_rss": 3063808,
+            "peak_footprint": 2392448
+          },
+          "rust": {
+            "seconds": 7.6693e-05,
+            "peak_rss": 3080192,
+            "peak_footprint": 2294144
+          }
+        }
+      ],
+      "c_median_seconds": 8.972e-05,
+      "rust_median_seconds": 6.0471e-05,
+      "paired_geomean_ratio": 0.6496072384197354,
+      "ratio_95_percent_ci": [
+        0.5243362497169457,
+        0.8048071527290342
+      ],
+      "peak_rss_ratio": 1.0106951871657754,
+      "runtime_pass": true,
+      "memory_pass": true
+    }
+  ],
+  "acceptance_pass": true
+}

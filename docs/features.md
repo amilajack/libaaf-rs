@@ -13,7 +13,7 @@ Reference: `agfline/LibAAF@7925dff4026be06b4edfacdfe458887c2d6503ca`. Checkmarks
 - [x] Typed strings, identifiers, integers, rationals, indirect values, tagged metadata and raw inspection
 - [x] Deterministic raw stream/property inspection with bounded file reads or borrowed owned-buffer ranges
 - [x] Original property bytes and resolved strong-reference edges match C on all 65 fixtures
-- [ ] Complete upstream parsed-property/debugging presentation equivalence
+- [ ] Complete upstream parsed-property/debugging presentation equivalence (CLI presentation, excluded)
 - [x] AddressSanitizer fuzz runs for document parsing, text inspection/ProTools recovery, and media/URI parsing (see verification.md)
 
 ## Timeline and application behavior

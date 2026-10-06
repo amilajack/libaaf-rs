@@ -11,7 +11,8 @@ license = "GPL-2.0-or-later"
 repository = "https://github.com/amilajack/libaaf-rs"
 
 [profile.release]
-lto = "thin"
+lto = "fat"
+panic = "abort"
 codegen-units = 1
 
 [workspace.lints.rust]
