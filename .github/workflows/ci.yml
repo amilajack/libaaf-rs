@@ -1,0 +1,46 @@
+name: Verify
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  native:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - run: rustup toolchain install 1.99.0 --profile minimal --component rustfmt --component clippy
+      - run: cargo fmt --all --check
+      - run: cargo clippy --workspace --all-targets --locked -- -D warnings
+      - run: cargo test --workspace --locked
+      - run: cargo doc --workspace --no-deps --locked
+        env:
+          RUSTDOCFLAGS: -D warnings
+  differential-and-wasm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: rustup toolchain install 1.99.0 --profile minimal --target wasm32-unknown-unknown
+      - run: cargo build --release --locked -p aaftool -p libaaf-acceptance
+      - run: cmake -S tooling/reference -B tooling/reference-build -DCMAKE_BUILD_TYPE=Release -DBUILD_DOC=OFF -DBUILD_UNIT_TEST=OFF -DBUILD_SHARED_LIB=OFF -DBUILD_STATIC_LIB=ON
+      - run: cmake --build tooling/reference-build --parallel 2
+      - run: python3 tooling/differential.py
+      - run: python3 tooling/upstream_tests.py
+      - run: cc -O3 -DNDEBUG -I tooling/reference/include tooling/inspection.c tooling/reference-build/lib/aaf -lm -o tooling/reference-build/inspection
+      - run: python3 tooling/inspect_differential.py
+      - run: cargo check --manifest-path fuzz/Cargo.toml --locked
+      - run: cargo install wasm-pack --version 0.15.0 --locked
+      - run: npm ci --prefix web
+      - run: npm run build --prefix web
+      - run: npm test --prefix web

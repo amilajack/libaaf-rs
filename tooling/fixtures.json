@@ -1,0 +1,721 @@
+{
+  "upstream": "https://github.com/agfline/LibAAF",
+  "commit": "7925dff4026be06b4edfacdfe458887c2d6503ca",
+  "files": [
+    {
+      "path": "test/aaf/DR_Audio_Levels.aaf",
+      "bytes": 393216,
+      "sha256": "6cf944c3b63d4e6fd8df575c7bad5dd13c8316ef0f2a0d15cf059380312b4351"
+    },
+    {
+      "path": "test/aaf/DR_Empty.aaf",
+      "bytes": 200704,
+      "sha256": "52b8e1c78dd75476e4a5fdef70ea3a520ffc99fd57ff9cbde1cabae09d70627b"
+    },
+    {
+      "path": "test/aaf/DR_MP3_External.aaf",
+      "bytes": 233472,
+      "sha256": "9c025f7a4f5e5486165a545ac24acdeae35bdc7f24a3eb8dabace6f8cb92896e"
+    },
+    {
+      "path": "test/aaf/DR_Markers.aaf",
+      "bytes": 208896,
+      "sha256": "219cae0f3034c1fc049037b883adb40167f583d2d4a255e1b19fbd4ed701c927"
+    },
+    {
+      "path": "test/aaf/DR_Mono_Clip_Positioning.aaf",
+      "bytes": 245760,
+      "sha256": "c0f7382e971e3c2f982af25224e4d45be145de3cd59e6078da5be24da5b5fd42"
+    },
+    {
+      "path": "test/aaf/DR_Multichannel_5.1_single_source.aaf",
+      "bytes": 266240,
+      "sha256": "a023662923c20c538aaa4522aee44ad740263a210c1e62ae6e893c58d0b7c4d7"
+    },
+    {
+      "path": "test/aaf/DR_Multichannel_7.1_single_source.aaf",
+      "bytes": 278528,
+      "sha256": "8ad29d43fc64908dce09ffc0fdd6226aadb116cd4b4736088431644e577d5108"
+    },
+    {
+      "path": "test/aaf/DR_Multichannel_stereo_single_source.aaf",
+      "bytes": 241664,
+      "sha256": "73c548ee18f5c6e12ac95d08cec6db7157657b921317ea9355c5d05aafa9c0d3"
+    },
+    {
+      "path": "test/aaf/DR_Stereo_Clip_Positioning.aaf",
+      "bytes": 278528,
+      "sha256": "b7941c899cf6a3777643c1dd0976b9c980231351ec8718e601517b4fd5b3d845"
+    },
+    {
+      "path": "test/aaf/MC_Audio_Levels.aaf",
+      "bytes": 446464,
+      "sha256": "acc284a347cbccd5821150cc18ad22663c50102e25804c2595b59af3131c1229"
+    },
+    {
+      "path": "test/aaf/MC_Audio_Pan.aaf",
+      "bytes": 430080,
+      "sha256": "4cb5679800034faf078edd07ad16470dc6ca792a836e0881597f576ea330e378"
+    },
+    {
+      "path": "test/aaf/MC_Audio_Warp.aaf",
+      "bytes": 524288,
+      "sha256": "75fef2a8847755803c0dbd1a6d52ca8427f96378df47dd8118082e47dd122646"
+    },
+    {
+      "path": "test/aaf/MC_Clip_Mute.aaf",
+      "bytes": 397312,
+      "sha256": "36c3c937be2c872ae2ecce037386392c76a1509dc8c5ea0b7285eebfe1700f10"
+    },
+    {
+      "path": "test/aaf/MC_Empty.aaf",
+      "bytes": 352256,
+      "sha256": "dfdd26dff0755f2d1995dc415bd888bd7afa81b3627416e73aeddfadc662742b"
+    },
+    {
+      "path": "test/aaf/MC_Fades.aaf",
+      "bytes": 544768,
+      "sha256": "974ab484f0adba90570ba3ab87cb3ba7ca39bc6ba479405f978d1992dae4b761"
+    },
+    {
+      "path": "test/aaf/MC_Markers.aaf",
+      "bytes": 417792,
+      "sha256": "3eab28eea5e4687bd78dd166c3fe2afe757b4564604e1c1ede525dd297872459"
+    },
+    {
+      "path": "test/aaf/MC_Metadata.aaf",
+      "bytes": 409600,
+      "sha256": "84b21a896adabb12c4e8b775abf4be3b6f022ea0b27e420cfe0af41b96027ed9"
+    },
+    {
+      "path": "test/aaf/MC_TC_100.aaf",
+      "bytes": 405504,
+      "sha256": "f2be27836c3370b4cf7f3cdfdff2351a434a5839ba9703c49c4ee27fd8716455"
+    },
+    {
+      "path": "test/aaf/MC_TC_119.88_DF.aaf",
+      "bytes": 405504,
+      "sha256": "54dd708f2476bb04e17270d26b967dfee802a94df0daf8ae73050b483d71930c"
+    },
+    {
+      "path": "test/aaf/MC_TC_119.88_NDF.aaf",
+      "bytes": 405504,
+      "sha256": "3478fecec6f8eeadea86ab41f2bfd1514d761ee4170c5cb7f4a31bb5d0750e5d"
+    },
+    {
+      "path": "test/aaf/MC_TC_120_DF.aaf",
+      "bytes": 405504,
+      "sha256": "4310a37fdecf21780b1fedd7d4d59ca950b669a60fdb53f7c7b07327327ddb76"
+    },
+    {
+      "path": "test/aaf/MC_TC_120_NDF.aaf",
+      "bytes": 405504,
+      "sha256": "a8ccb75a4716f813fba63d003493f09d6b786f52889459c870f3618e8c710609"
+    },
+    {
+      "path": "test/aaf/MC_TC_23.976.aaf",
+      "bytes": 425984,
+      "sha256": "d2a3f7bf04323adb3635ca93d3133b77886c9df74a6fb38061b60624580298fa"
+    },
+    {
+      "path": "test/aaf/MC_TC_24.aaf",
+      "bytes": 425984,
+      "sha256": "43f2ed4c7c932929ab6bbe2fe3c4994eb7f53a13f98e26dbb9f4e72f4dceb316"
+    },
+    {
+      "path": "test/aaf/MC_TC_25.aaf",
+      "bytes": 421888,
+      "sha256": "06d371a5f53a54c386e8698cf2c0c6ca76bf5d38d0e6f04126b22300a942934d"
+    },
+    {
+      "path": "test/aaf/MC_TC_29.97_DF.aaf",
+      "bytes": 409600,
+      "sha256": "e2e5376f6ca62905ef3b2bc8ee8f86e8c7a7b44c4203b07b2ebd262f268c4b61"
+    },
+    {
+      "path": "test/aaf/MC_TC_29.97_NDF.aaf",
+      "bytes": 409600,
+      "sha256": "6898f84060a3f0f26473e5616bf82653025bf7f65ecd773da040eff132e48a0f"
+    },
+    {
+      "path": "test/aaf/MC_TC_30_DF.aaf",
+      "bytes": 405504,
+      "sha256": "660a398ae8d5c651ab8ef5753dcfd9217066b6370ab631c7a416d148c04a72cb"
+    },
+    {
+      "path": "test/aaf/MC_TC_30_NDF.aaf",
+      "bytes": 405504,
+      "sha256": "f8de598307170187fd52a4acb0229558117b442418099fe23d0ad71e330ed5df"
+    },
+    {
+      "path": "test/aaf/MC_TC_50.aaf",
+      "bytes": 405504,
+      "sha256": "097d0518374556c3a01ae9be748acd460860e68e5104285c38d746dae776386f"
+    },
+    {
+      "path": "test/aaf/MC_TC_59.94_DF.aaf",
+      "bytes": 405504,
+      "sha256": "c5dc3423085d185f5431f897665f56bceed05fea3fa7ec2b04e64ececdc7a05a"
+    },
+    {
+      "path": "test/aaf/MC_TC_59.94_NDF.aaf",
+      "bytes": 405504,
+      "sha256": "a525ee17e86132049ce118421221ed9231611eb1294977e04a9c2a29f2d24fb7"
+    },
+    {
+      "path": "test/aaf/MC_TC_60_DF.aaf",
+      "bytes": 405504,
+      "sha256": "73e6a94bc93b9166eb1aea4a82f1401889639865550024e902d01ef383b0a6ab"
+    },
+    {
+      "path": "test/aaf/MC_TC_60_NDF.aaf",
+      "bytes": 405504,
+      "sha256": "787f42327cc0321b92f128912449a10bf7d629608ac2c6a0bf71b253134eaa2b"
+    },
+    {
+      "path": "test/aaf/MC_Track_Solo_Mute.aaf",
+      "bytes": 393216,
+      "sha256": "d7163eac7c9caf52be76a0f29c8de749c15d0b70e922f306898a0ea698406b83"
+    },
+    {
+      "path": "test/aaf/Média AAF/花/bb6deb92-04b8-4b2a-9d6f-cd840000007c.wav",
+      "bytes": 16442,
+      "sha256": "1a546565816204155325da281cdd462f695646fb1e9c997a555f487b1e85bfab"
+    },
+    {
+      "path": "test/aaf/PR_AIFF_Internal.aaf",
+      "bytes": 352256,
+      "sha256": "d658c2aad6d787c99bdf13aaca64eb4b73c94a1e05cafc3a34f407fccb02b15c"
+    },
+    {
+      "path": "test/aaf/PR_Audio_Levels-noBTM.aaf",
+      "bytes": 303104,
+      "sha256": "521acd7a162d36fedaa56c27fccd329ce34b3236b033413b5a452ff43a77b5fb"
+    },
+    {
+      "path": "test/aaf/PR_Audio_Pan-noBTM.aaf",
+      "bytes": 271872,
+      "sha256": "f9f3beb29f5425e7228445fe83857345e29472242a57a835d09b4a61ebe89c0c"
+    },
+    {
+      "path": "test/aaf/PR_Clip_length_beyond_EOF.aaf",
+      "bytes": 256000,
+      "sha256": "2f5399fc66c46f8d759207c38ed5f2ab29f77777cf90ba9a444f37562e0450f5"
+    },
+    {
+      "path": "test/aaf/PR_Fades.aaf",
+      "bytes": 363008,
+      "sha256": "05b6a01c1aee81dba597e98112470fc3ea6a873a266fef52710c5ee99c003d7e"
+    },
+    {
+      "path": "test/aaf/PR_WAV_External_sub_sub_directory_UTF8.aaf",
+      "bytes": 246784,
+      "sha256": "b562a1d028c5c13e5358b2fdd5465d08fd78eb2e0f4fb7626948f841c6a69890"
+    },
+    {
+      "path": "test/aaf/PR_WAV_Internal.aaf",
+      "bytes": 352256,
+      "sha256": "c4f3c232d255642940702a0a220e598b995e0ec8991d124d861598a61dd6211b"
+    },
+    {
+      "path": "test/aaf/PT_AIFF_External.aaf",
+      "bytes": 295424,
+      "sha256": "930bc57bdb345a7cceb67d032f516849fa5d90dd50f44cd5bead4650bbd02f9b"
+    },
+    {
+      "path": "test/aaf/PT_Audio_Levels-noEMCC-noExpTracksAsMultiChannel.aaf",
+      "bytes": 401408,
+      "sha256": "d2be105f34a89eea35eaeb47d3f0d4279aba637e3617c8dbfd0797ff76e5999b"
+    },
+    {
+      "path": "test/aaf/PT_Fades.aaf",
+      "bytes": 713728,
+      "sha256": "6c0c097e54f2c5a191246bb92bfdbc55834eeda1a9c8fa9506c89ad459e96a12"
+    },
+    {
+      "path": "test/aaf/PT_Fades_A.aaf",
+      "bytes": 713728,
+      "sha256": "6c0c097e54f2c5a191246bb92bfdbc55834eeda1a9c8fa9506c89ad459e96a12"
+    },
+    {
+      "path": "test/aaf/PT_Fades_B.aaf",
+      "bytes": 713728,
+      "sha256": "6c0c097e54f2c5a191246bb92bfdbc55834eeda1a9c8fa9506c89ad459e96a12"
+    },
+    {
+      "path": "test/aaf/PT_Fades_no_handles.aaf",
+      "bytes": 713728,
+      "sha256": "39ac55d586713b97ffd46086b7e68f6fe6a7e192ba04369fb5e944f0b6f8b536"
+    },
+    {
+      "path": "test/aaf/PT_MXF_External.aaf",
+      "bytes": 291840,
+      "sha256": "79556d5a07fa51c101cc7415531859aa3f540939505e92c9aa4198b7ff67f422"
+    },
+    {
+      "path": "test/aaf/PT_Multichannel_5.1_multi_source.aaf",
+      "bytes": 435712,
+      "sha256": "6e8561350141f62b1a48da2df6269de12e3251c9ef3e1a1320a9a181d9798415"
+    },
+    {
+      "path": "test/aaf/PT_Multichannel_7.1_multi_source.aaf",
+      "bytes": 485376,
+      "sha256": "eedeec5303289f94433a6a90006d6818967ba610635ea7efca813487ad478afa"
+    },
+    {
+      "path": "test/aaf/PT_Multichannel_stereo_multi_source.aaf",
+      "bytes": 336384,
+      "sha256": "faba142306126a9eec0027185efb897bc268cc20f3f4c050ef9a34db2808c8e8"
+    },
+    {
+      "path": "test/aaf/PT_PCM_Internal.aaf",
+      "bytes": 371712,
+      "sha256": "c58ee8aaac1bda1959e17d5ba5a7c9137f8fe06a39e2b2433f6199ad96a9846a"
+    },
+    {
+      "path": "test/aaf/PT_UTF8_EssencePath.aaf",
+      "bytes": 300032,
+      "sha256": "19d0dc6f715326b45f825d703c195d524ea9dd36555826a3c1ea155949193aca"
+    },
+    {
+      "path": "test/aaf/PT_WAV_ExtehcrfPFTBxvdzJCBB.wav",
+      "bytes": 153844,
+      "sha256": "53f24f7539c41002122e590577a8b86a6f4be2d5cf23624b6f28fffdb31844a5"
+    },
+    {
+      "path": "test/aaf/PT_WAV_External.aaf",
+      "bytes": 299520,
+      "sha256": "91bf3744c6af6eab82b378c0a79917dfcaea5f0a1ccb870b0e83b62e3b15f09e"
+    },
+    {
+      "path": "test/aaf/PT_WAV_External_same_directory.aaf",
+      "bytes": 285696,
+      "sha256": "867be1b6c6612833916775389cf9a5fe45e91c800110535ca35169315a7c1751"
+    },
+    {
+      "path": "test/aaf/PT_WAV_External_sub_directory/PT_WAV_ExterqqqHXSBxbzcJCBB.wav",
+      "bytes": 153844,
+      "sha256": "24be38feadc9c3b7fc21195433189bbad4f45caaf79addb4d42742abdbf9941e"
+    },
+    {
+      "path": "test/aaf/PT_WAV_External_sub_directory.aaf",
+      "bytes": 285696,
+      "sha256": "c466443e16c3e6cadf85b039f140ca31157e5d12f02584ca884fa348d3784ae6"
+    },
+    {
+      "path": "test/aaf/PT_lang_de.aaf",
+      "bytes": 358912,
+      "sha256": "93f2a72135cf643118750b0101c71e7045b62d5e6e440b416f5bae45de1a4ee6"
+    },
+    {
+      "path": "test/aaf/PT_lang_en.aaf",
+      "bytes": 358912,
+      "sha256": "24b1d0d9d9072f7de630b9dc7a252e86bb90861bb2e2ffaf5e3af4aeb2def687"
+    },
+    {
+      "path": "test/aaf/PT_lang_es.aaf",
+      "bytes": 358912,
+      "sha256": "73593aeeb08298f246d55986a4ecbd0503c35a7fae1db08e9106abb5c9d3f6a6"
+    },
+    {
+      "path": "test/aaf/PT_lang_fr.aaf",
+      "bytes": 358912,
+      "sha256": "0c1ca58c14db5e3f44b45d2c4b033941e2581a142de927ff6a22e5e92ebc46a7"
+    },
+    {
+      "path": "test/aaf/PT_lang_ja.aaf",
+      "bytes": 358912,
+      "sha256": "71f3be7f5b3004cf5f743616dd1000ef71b367f26b74e843a0e46f73cd9166eb"
+    },
+    {
+      "path": "test/aaf/PT_lang_ko.aaf",
+      "bytes": 358912,
+      "sha256": "300299bf01c7c7861b036f52318ca0a6b152ab0725b360140710404f6046a70a"
+    },
+    {
+      "path": "test/aaf/PT_lang_zh_CN.aaf",
+      "bytes": 358912,
+      "sha256": "99367684ad1befc16563e153a57383720fd3f55d8cf636d7e5969c450ad77580"
+    },
+    {
+      "path": "test/aaf/PT_lang_zh_TW.aaf",
+      "bytes": 358912,
+      "sha256": "6565d3a5dcc47b6b9942dcefa76c965d750c04c200605937fc0e6b716392bf6c"
+    },
+    {
+      "path": "test/aaf/الفوضى/PT_UTF8_EsszxcxBYZCdpbxHBBB.wav",
+      "bytes": 31786,
+      "sha256": "4c08d6c9a12fe1a16cd29576ff2707aca28a47117d2750a2413e653ade1d8c1b"
+    },
+    {
+      "path": "test/expected/DR_Audio_Levels.aaf.expected",
+      "bytes": 14174,
+      "sha256": "dcced97e571c60e1d3b2d42d2a5c7137db497d5e75afffece0e3131d81fa9456"
+    },
+    {
+      "path": "test/expected/DR_Empty.aaf.expected",
+      "bytes": 1332,
+      "sha256": "e252e3029ce1af9d2a067677d6420a563493f7b2a763d13fae9371816af9a1e2"
+    },
+    {
+      "path": "test/expected/DR_MP3_External.aaf.expected",
+      "bytes": 1689,
+      "sha256": "1fec32e01985905280da7c7e8d7be285cd3b1350eed90944af7cecd0fd6a0b49"
+    },
+    {
+      "path": "test/expected/DR_Markers.aaf.expected",
+      "bytes": 1684,
+      "sha256": "db565f79cd8f8c421f20730090ba628d9563186553256119facff5f0f574125a"
+    },
+    {
+      "path": "test/expected/DR_Mono_Clip_Positioning.aaf.expected",
+      "bytes": 3045,
+      "sha256": "d5a4a123a24d560d0fd7de5a5b405ff6a9cbd2f43d4741f456ddd97507393444"
+    },
+    {
+      "path": "test/expected/DR_Multichannel_5.1_single_source.aaf.expected",
+      "bytes": 2873,
+      "sha256": "e6a83b6d33e26be4376e3a8c9b197254336ac5b06578afc4eb8b1782f2992f5d"
+    },
+    {
+      "path": "test/expected/DR_Multichannel_7.1_single_source.aaf.expected",
+      "bytes": 3341,
+      "sha256": "48f75c267b908b9a8187b7a438579e79c1bc4362ee9a670e996f9980e5ec4284"
+    },
+    {
+      "path": "test/expected/DR_Multichannel_stereo_single_source.aaf.expected",
+      "bytes": 1996,
+      "sha256": "3b23a590ac145d284291be48c57d9bcdf9a535360e4f62b04e016f83c12bb778"
+    },
+    {
+      "path": "test/expected/DR_Stereo_Clip_Positioning.aaf.expected",
+      "bytes": 4117,
+      "sha256": "95f1ff25595cbf44bbe3eac4b8d69146390380150d88a87f16426766b4d8fa62"
+    },
+    {
+      "path": "test/expected/MC_Audio_Levels.aaf.expected",
+      "bytes": 4360,
+      "sha256": "863290b6bd4400de77f04c8818b1c7075d79a088921b641595beccd9e94e9f91"
+    },
+    {
+      "path": "test/expected/MC_Audio_Pan.aaf.expected",
+      "bytes": 2765,
+      "sha256": "53290fa4720a975fa19918700bd03c9c50ce028dba0abaebf59d2eae6d6fb0e6"
+    },
+    {
+      "path": "test/expected/MC_Audio_Warp.aaf.expected",
+      "bytes": 4110,
+      "sha256": "cda2326b6796e255a192f1ea541ec7d6eb26e0115a5e9d06e5887850c3debaa2"
+    },
+    {
+      "path": "test/expected/MC_Clip_Mute.aaf.expected",
+      "bytes": 2100,
+      "sha256": "431885d44d295a73cfeb47f98869cbcd5b22359189e566d7e74ae38587d37cd7"
+    },
+    {
+      "path": "test/expected/MC_Empty.aaf.expected",
+      "bytes": 1261,
+      "sha256": "b373c18a651ed841579800384b6d5855bc13a0e3a1754cbd5348f405f6f097d6"
+    },
+    {
+      "path": "test/expected/MC_Fades.aaf.expected",
+      "bytes": 5081,
+      "sha256": "f16b09d7b268460979fdd24d14dc40b51b5a32befcfe410c1327f7e8b7902644"
+    },
+    {
+      "path": "test/expected/MC_Markers.aaf.expected",
+      "bytes": 2989,
+      "sha256": "8439fdd3b438a2f580b5975548241458154787fdf1160425bd196e5d24bf6b48"
+    },
+    {
+      "path": "test/expected/MC_Metadata.aaf.expected",
+      "bytes": 3256,
+      "sha256": "9006b898ba3303f61280bc6c1e56c474a1349e2338f68632a4201311090e48cb"
+    },
+    {
+      "path": "test/expected/MC_TC_100.aaf.expected",
+      "bytes": 2090,
+      "sha256": "79bc59ee85f7f3980b76ebab3da68a8844f8ef870e95a60cdbfaebe76cd6dee4"
+    },
+    {
+      "path": "test/expected/MC_TC_119.88_DF.aaf.expected",
+      "bytes": 2116,
+      "sha256": "983fdb081a76fae6bac3d7a146c18b9db96cadd948b125374c82caeb8cf9a37e"
+    },
+    {
+      "path": "test/expected/MC_TC_119.88_NDF.aaf.expected",
+      "bytes": 2118,
+      "sha256": "1b7f39bec77be25da58892136289500757f72299d75846b825255dc8151deb54"
+    },
+    {
+      "path": "test/expected/MC_TC_120_DF.aaf.expected",
+      "bytes": 2092,
+      "sha256": "dca1dace41e5a921fc77877f24ca7a853c979a8473e8a01c44abf76685327085"
+    },
+    {
+      "path": "test/expected/MC_TC_120_NDF.aaf.expected",
+      "bytes": 2094,
+      "sha256": "0800c7db0c6176f518e8169275a427b0332005390bc6a21f24922a20bec1d6af"
+    },
+    {
+      "path": "test/expected/MC_TC_23.976.aaf.expected",
+      "bytes": 2112,
+      "sha256": "3175f91079bb6fd347b9d591a6362de004e98c6c498f58704289dc0bc511c06f"
+    },
+    {
+      "path": "test/expected/MC_TC_24.aaf.expected",
+      "bytes": 2078,
+      "sha256": "975e90fb18b9e19ef16a7c9a5d12939225909f644aecee5555fff413f3a9e2fe"
+    },
+    {
+      "path": "test/expected/MC_TC_25.aaf.expected",
+      "bytes": 2078,
+      "sha256": "5516f74908482b37064e691146876109fa9798ca7d8aef57f255b05d6780b823"
+    },
+    {
+      "path": "test/expected/MC_TC_29.97_DF.aaf.expected",
+      "bytes": 2115,
+      "sha256": "9767f7e860013aedc8de2fba3a8a289af22a40dec4c35b0fee745004d9fd0ba8"
+    },
+    {
+      "path": "test/expected/MC_TC_29.97_NDF.aaf.expected",
+      "bytes": 2117,
+      "sha256": "142ec3bdaa796dd24ce5dbd647fcf188c1acd1be73fe7d4b866bf494f1ff2047"
+    },
+    {
+      "path": "test/expected/MC_TC_30_DF.aaf.expected",
+      "bytes": 2082,
+      "sha256": "0764282103b0239d8614e3ad6b3a712c708565f79c8d66062fa2d780307ecca1"
+    },
+    {
+      "path": "test/expected/MC_TC_30_NDF.aaf.expected",
+      "bytes": 2084,
+      "sha256": "55a0161470e4ddd32d0007f958dc70cd2fa46f2d7ffc853c90b6ce6c498f0924"
+    },
+    {
+      "path": "test/expected/MC_TC_50.aaf.expected",
+      "bytes": 2080,
+      "sha256": "b9c7e0ccd3b4672231b7242205792895c23887dd02315f32e539c856da656b02"
+    },
+    {
+      "path": "test/expected/MC_TC_59.94_DF.aaf.expected",
+      "bytes": 2115,
+      "sha256": "a1df590fc4384047d46622d67bdfe46365aa77545f0fa12b4822cf9271e9ee8c"
+    },
+    {
+      "path": "test/expected/MC_TC_59.94_NDF.aaf.expected",
+      "bytes": 2117,
+      "sha256": "a1c9f86c7f8297dc739ae8429e8f5a6e1cd93e586a85c0fd8eee66d3d49400e8"
+    },
+    {
+      "path": "test/expected/MC_TC_60_DF.aaf.expected",
+      "bytes": 2082,
+      "sha256": "0f17edad172b52a7e9a6cd8a1e72dd1ebd8ae27c839243068a605467705e21f6"
+    },
+    {
+      "path": "test/expected/MC_TC_60_NDF.aaf.expected",
+      "bytes": 2084,
+      "sha256": "b2bf773169e5f4eec880b709d71cc5544322bb939bc90a7ab1a17df585f7bbb7"
+    },
+    {
+      "path": "test/expected/MC_Track_Solo_Mute.aaf.expected",
+      "bytes": 2286,
+      "sha256": "251f2f5ed78938a42d22059bbe54e062dd9596f9ea9f5f74c026ceee23047b7a"
+    },
+    {
+      "path": "test/expected/PR_AIFF_Internal.aaf.expected",
+      "bytes": 1787,
+      "sha256": "0d4c9740146e4a14332f6fcaabbf8e372964d64930ada623142d56ae4ab57c11"
+    },
+    {
+      "path": "test/expected/PR_Audio_Levels-noBTM.aaf.expected",
+      "bytes": 5040,
+      "sha256": "8805e030e4159b87c184c92dd8ef3f54174d79570cfbbffd79a1083b8d7523e7"
+    },
+    {
+      "path": "test/expected/PR_Audio_Pan-noBTM.aaf.expected",
+      "bytes": 3576,
+      "sha256": "38e9776f1b46a8123303d8cbe9212e2850f89bc265133d9a258c66a6d947331c"
+    },
+    {
+      "path": "test/expected/PR_Clip_length_beyond_EOF.aaf.expected",
+      "bytes": 1777,
+      "sha256": "d9a1d2bead1373048a708b40dba4881d30dfb03461ba8ee6f68433cf717f2e73"
+    },
+    {
+      "path": "test/expected/PR_Fades.aaf.expected",
+      "bytes": 5997,
+      "sha256": "391a94f9db28ec8a6d4caf310095f98b8cbf61f6bf5850dceb56fe055f5d398d"
+    },
+    {
+      "path": "test/expected/PR_WAV_External_sub_sub_directory_UTF8.aaf.expected",
+      "bytes": 1809,
+      "sha256": "b05d793a4b962cca8ece7e94363cd7c0ce68928ad342c8805f653563d3915250"
+    },
+    {
+      "path": "test/expected/PR_WAV_Internal.aaf.expected",
+      "bytes": 1786,
+      "sha256": "6734718f1b1ea978924eac0ff0aac1d62fd5e1fd6049f8e0c9c30767038b1d6f"
+    },
+    {
+      "path": "test/expected/PT_AIFF_External.aaf.expected",
+      "bytes": 1747,
+      "sha256": "63e8775bba56d201e7235dc3070433c92469f58df5347003de89cc9b017b1f86"
+    },
+    {
+      "path": "test/expected/PT_Audio_Levels-noEMCC-noExpTracksAsMultiChannel.aaf.expected",
+      "bytes": 14136,
+      "sha256": "cb98b2866dcdace5cd653e97b6aa9cd61f477a23180063abb0952dd1b750d9ed"
+    },
+    {
+      "path": "test/expected/PT_Fades.aaf.expected",
+      "bytes": 12621,
+      "sha256": "d6b97f68ead346a7bbc6b345b6d2b42d540ce4ed84968e8241188679adfd08e5"
+    },
+    {
+      "path": "test/expected/PT_Fades_A.aaf.expected",
+      "bytes": 10343,
+      "sha256": "81428f83cb7fa1e1e838dd41425344d56fea4fd461f2efb7b8126c670ecc7491"
+    },
+    {
+      "path": "test/expected/PT_Fades_B.aaf.expected",
+      "bytes": 9560,
+      "sha256": "6735ca7c59aa883b38ec53432527e117f7ecea01e5f4bfa77746320880227d3e"
+    },
+    {
+      "path": "test/expected/PT_Fades_no_handles.aaf.expected",
+      "bytes": 12615,
+      "sha256": "c36cb54a475f3c238df715763ca4be1ec3a8146040c41bd96ed14292f3971781"
+    },
+    {
+      "path": "test/expected/PT_MXF_External.aaf.expected",
+      "bytes": 1761,
+      "sha256": "3235a53dcd84ab6803f0d81961236bba2af49d4b0b373afc2aafc01293cf690b"
+    },
+    {
+      "path": "test/expected/PT_Multichannel_5.1_multi_source.aaf.expected",
+      "bytes": 5264,
+      "sha256": "a1e773041c8cfc294e65c34ec7e41a481a2243cf7b20f952666439d7a10330f7"
+    },
+    {
+      "path": "test/expected/PT_Multichannel_7.1_multi_source.aaf.expected",
+      "bytes": 6595,
+      "sha256": "389305677cea22b9e7bd16fa3835fdd44cac1a300362d29701e91e71f2da20bc"
+    },
+    {
+      "path": "test/expected/PT_Multichannel_stereo_multi_source.aaf.expected",
+      "bytes": 2661,
+      "sha256": "3d482838925f47694b3d689971e79d008a4f7edb4b4f8528963c927105d5f414"
+    },
+    {
+      "path": "test/expected/PT_PCM_Internal.aaf.expected",
+      "bytes": 1671,
+      "sha256": "528d1e2dfd8783e60b2aa602682f40d14a5d120cc224af7576ce68569d664b8c"
+    },
+    {
+      "path": "test/expected/PT_UTF8_EssencePath.aaf.expected",
+      "bytes": 1687,
+      "sha256": "39d2185b4f089d08b8d787d0412621b2f0059224995c5ee5bdc0ea00152ff6de"
+    },
+    {
+      "path": "test/expected/PT_WAV_External.aaf.expected",
+      "bytes": 1700,
+      "sha256": "61248d7af0bce349a6c3ee5141c0da10b8f007f9e2a1df07fc5ec4432cb9815e"
+    },
+    {
+      "path": "test/expected/PT_WAV_External_same_directory.aaf.expected",
+      "bytes": 1700,
+      "sha256": "d88808ff1c6c886ed492110f885620c41adc8c7e8a440a6f6e76fb7c49abaf1e"
+    },
+    {
+      "path": "test/expected/PT_WAV_External_sub_directory.aaf.expected",
+      "bytes": 1729,
+      "sha256": "c31e0b1aeb60938d6a4288d85762a9f0e88de345d96fccf78c0d4e44d8053d5e"
+    },
+    {
+      "path": "test/expected/PT_lang_de.aaf.expected",
+      "bytes": 3210,
+      "sha256": "6832da507a89c5b9e371add14b01ede7785857581e7b4cfca3e466e7cd41e129"
+    },
+    {
+      "path": "test/expected/PT_lang_en.aaf.expected",
+      "bytes": 3178,
+      "sha256": "b8b5be7826b0ac6271755bb87f1bb515b869e0fef88ed77cf1de7281ea076ca5"
+    },
+    {
+      "path": "test/expected/PT_lang_es.aaf.expected",
+      "bytes": 3302,
+      "sha256": "52fef42a9c891569134472b725e8a78852cca58a4ecb6e70d32a3de042a4f480"
+    },
+    {
+      "path": "test/expected/PT_lang_fr.aaf.expected",
+      "bytes": 3310,
+      "sha256": "f9551a763754653d4a2a8d57d7c4644d76e649f7195d52e82cd54481a2b80bfa"
+    },
+    {
+      "path": "test/expected/PT_lang_ja.aaf.expected",
+      "bytes": 3210,
+      "sha256": "15b600fab7ccb6e9e3da3cdb6424bb6f5f80a93cf09fea54fe8dd378f81e53d1"
+    },
+    {
+      "path": "test/expected/PT_lang_ko.aaf.expected",
+      "bytes": 3250,
+      "sha256": "1616736f36206121aaa5ba43b732de4a1a0efbc24e887908d2ac1e0c47840ef5"
+    },
+    {
+      "path": "test/expected/PT_lang_zh_CN.aaf.expected",
+      "bytes": 3180,
+      "sha256": "2aa9a0028a771c15e8d500c18e0354827480543cefd58f596b1c05a0be050a62"
+    },
+    {
+      "path": "test/expected/PT_lang_zh_TW.aaf.expected",
+      "bytes": 3180,
+      "sha256": "99ef4af6ced04c41de4f998d0e3cb41a34553cd5a26aed924265c4c8207dc4ec"
+    },
+    {
+      "path": "test/res/.gitignore",
+      "bytes": 15,
+      "sha256": "89b4ead778c7c3c43b4d166c9f8a81bba4baab13f4b8b9526114cdd6df816f50"
+    },
+    {
+      "path": "test/res/1000hz-18dbs16b44.1k.aiff",
+      "bytes": 267358,
+      "sha256": "c39924317c0b495173c8cf331f91a2299890fd5ae18658e0e9b16455dae08e12"
+    },
+    {
+      "path": "test/res/1000hz-18dbs16b44.1k.wav",
+      "bytes": 267958,
+      "sha256": "4c0a1a723866815197942fa27e9c73bf89e448e946f530d28ae4cfafba46a74b"
+    },
+    {
+      "path": "test/res/1000hz.mp3",
+      "bytes": 13212,
+      "sha256": "42ec80d7a6d484635b6f31cfa7e341705dbcf5ce77b29fb9182f54980c2678eb"
+    },
+    {
+      "path": "test/test.py",
+      "bytes": 14173,
+      "sha256": "fcccdfc2c26cc8bf653d298771eb3d5fcaae226a5c579d845d8829318f36cc95"
+    },
+    {
+      "path": "test/units/common.h",
+      "bytes": 2252,
+      "sha256": "86c7398a6917ea743825e91beb64bef629399aabd8000453d2031c8c97719cc8"
+    },
+    {
+      "path": "test/units/test_libtc.c",
+      "bytes": 5159,
+      "sha256": "6aaf23bdc50c17f3788454ceda8d0978f5b0e2a4b0d79a65751d9b770ab9f7a4"
+    },
+    {
+      "path": "test/units/test_uri.c",
+      "bytes": 21954,
+      "sha256": "96ed174a531f4654716958621dd684d4a1910d432a6a205641cc285d20cd56af"
+    },
+    {
+      "path": "test/units/test_utils.c",
+      "bytes": 7333,
+      "sha256": "7b158d0bf1532319f37248c046a5e44e20bf685fe0edd708dd26ecf45cca3b6a"
+    }
+  ]
+}

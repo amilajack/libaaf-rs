@@ -1,0 +1,18 @@
+[workspace]
+members = ["crates/libaaf", "crates/aaftool", "crates/acceptance", "crates/libaaf-wasm"]
+exclude = ["fuzz"]
+resolver = "3"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.99"
+license = "GPL-2.0-or-later"
+repository = "https://github.com/amilajack/libaaf-rs"
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
+
+[workspace.lints.rust]
+unsafe_code = "forbid"

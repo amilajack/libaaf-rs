@@ -1,0 +1,8 @@
+Native Rust port of LibAAF, https://github.com/agfline/LibAAF
+Reference revision: 7925dff4026be06b4edfacdfe458887c2d6503ca
+Upstream copyright (C) 2017-2024 Adrien Gesta-Fline and contributors.
+Rust modifications copyright (C) 2026 amilajack and contributors.
+The port and derived definitions are GPL-2.0-or-later. See LICENSE.
+Upstream C sources are a pinned development-only submodule. No C code is
+compiled into or invoked by the production Rust library or CLI.
+Third-party libTC attribution is retained in tooling/reference/tools/thirdparty.

@@ -1,0 +1,3 @@
+[submodule "tooling/reference"]
+	path = tooling/reference
+	url = https://github.com/agfline/LibAAF.git

@@ -1,0 +1,21 @@
+[package]
+name = "libaaf-wasm"
+description = "WebAssembly bindings for native Rust AAF reading and extraction"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+license.workspace = true
+publish = false
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+libaaf = { path = "../libaaf" }
+wasm-bindgen = "0.2"
+js-sys = "0.3"
+serde_json = "1"
+
+[lints]
+workspace = true

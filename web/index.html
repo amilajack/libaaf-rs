@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="Inspect AAF files locally using the native Rust reader in WebAssembly."><title>AAF Import Lab</title></head>
+<body><div id="app">
+  <header><a class="wordmark" href="/" aria-label="AAF Import Lab home"><span class="brand-icon">▥</span> AAF <span>IMPORT LAB</span></a><span class="local-badge"><i></i> Runs locally in your browser</span></header>
+  <main>
+    <div class="intro"><div><p class="eyebrow">LIBAAF / WEBASSEMBLY</p><h1>Open the session.</h1><p class="lede">Explore tracks, sources, and the structure inside an AAF.</p></div><span class="format-stamp">.AAF</span></div>
+    <section class="import-panel" aria-label="Import an AAF file">
+      <div id="drop-zone" class="drop-zone"><span class="upload-icon" aria-hidden="true">↑</span><div><strong>Drop an AAF file here</strong><p>or choose a file from your computer. Your files stay on this device.</p></div><label class="button primary" for="file">Choose AAF file</label><input id="file" type="file" accept=".aaf" class="sr-only"></div>
+      <div class="import-footer"><div class="samples"><span>TRY A SESSION</span><button data-fixture="PR_WAV_Internal.aaf">Embedded audio <span>↗</span></button><button data-fixture="MC_Markers.aaf">Markers <span>↗</span></button><button data-fixture="DR_Multichannel_7.1_single_source.aaf">7.1 surround <span>↗</span></button></div><details class="reader-options"><summary>Reader options</summary><label><input id="recover-fades" type="checkbox"> Recover ProTools fades</label><label><input id="remove-sae" type="checkbox"> Remove sample accurate edits</label></details></div>
+    </section>
+    <div id="status" role="status" aria-live="polite">Initializing the AAF reader…</div><div id="error" role="alert" hidden></div>
+    <section id="empty" class="empty"><div class="empty-graphic" aria-hidden="true"><i></i><i></i><i></i></div><h2>A session, from the inside.</h2><p>Import a file to inspect its timeline, embedded media, and metadata.</p></section>
+    <section id="session" hidden>
+      <div class="session-heading"><div><p id="filename" class="eyebrow"></p><h2 id="session-name"></h2><p id="producer"></p></div><button id="export-json" class="button">Export inspection JSON ↓</button></div>
+      <div id="stats" class="stats"></div>
+      <div class="tabs" role="tablist" aria-label="Session views"><button id="tab-timeline" role="tab" aria-controls="timeline" aria-selected="true">Timeline <span id="track-count"></span></button><button id="tab-media" role="tab" aria-controls="media" aria-selected="false" tabindex="-1">Media <span id="media-count"></span></button><button id="tab-metadata" role="tab" aria-controls="metadata" aria-selected="false" tabindex="-1">Metadata</button><button id="tab-objects" role="tab" aria-controls="objects" aria-selected="false" tabindex="-1">Objects</button></div>
+      <section id="timeline" role="tabpanel" aria-labelledby="tab-timeline"><div class="panel-title"><h3>Session timeline</h3><span>Positions relative to session start · seconds</span></div><div id="timeline-tracks"></div><div id="clip-detail" hidden></div><div id="markers"></div></section>
+      <section id="media" role="tabpanel" aria-labelledby="tab-media" hidden><div class="panel-title"><h3>Source media</h3><span>External file paths are references. Embedded audio can be downloaded.</span></div><div id="media-list"></div></section>
+      <section id="metadata" role="tabpanel" aria-labelledby="tab-metadata" hidden><h3>Composition metadata</h3><div id="metadata-list"></div><h3>Reader diagnostics</h3><div id="diagnostics"></div></section>
+      <section id="objects" role="tabpanel" aria-labelledby="tab-objects" hidden><div class="panel-title"><h3>Object dictionary</h3><label>Filter <input id="object-filter" type="search" placeholder="Class or path" autocomplete="off"></label></div><div class="object-layout"><div id="object-list"></div><pre id="object-detail">Select an object to inspect its raw properties.</pre></div></section>
+    </section>
+  </main><footer><span>libaaf-rs · Native Rust, compiled to WebAssembly</span><span>Read / inspect / extract</span></footer>
+</div><script type="module" src="/src/main.js"></script></body></html>

@@ -1,0 +1,12 @@
+/target/
+/fuzz/target/
+/fuzz/artifacts/
+/fuzz/corpus/
+/tooling/reference-build/
+/tooling/results/
+.DS_Store
+
+/crates/libaaf-wasm/pkg/
+/web/node_modules/
+/web/dist/
+/web/public/fixtures/
