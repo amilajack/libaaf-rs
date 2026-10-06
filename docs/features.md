@@ -69,14 +69,14 @@ Reference: `agfline/LibAAF@7925dff4026be06b4edfacdfe458887c2d6503ca`. Checkmarks
 - [x] 455 additional differential cases pass locally, without normalization of substantive output
 - [x] Native formatting, Clippy, tests, docs and wasm production build/test run locally
 - [x] Linux/macOS/Windows verification workflow configured
-- [x] Native CI passed on Linux, macOS and Windows (`f3445af`)
-- [x] Full Linux reference/wasm CI passed (`6e3402a`)
+- [x] Native CI passed on Linux, macOS and Windows (`2d6173b`)
+- [x] Full Linux reference/wasm CI passed (`2d6173b`)
 - [x] Separate paired release parse/extraction benchmark harnesses and measured Mac baseline
 - [ ] Every designated workload at most 5% slower than C with adequate confidence
 - [ ] Every designated workload peak memory at most 10% above C
-- [ ] Controlled final acceptance run, memory profile and remaining optimization
+- [x] Current performance accepted by the user on 2026-10-06; further optimization excluded
 
-The user excluded further CLI parity work on 2026-10-06. Completion of the remaining library scope requires its fidelity checks and all performance acceptance gates. Repository creation, the passing main fixture suite and the working web app do not establish complete port parity.
+The user excluded further CLI parity work and accepted current performance on 2026-10-06. The original numeric benchmark gates above remain unchecked because diagnostic runs do not prove them; they no longer block the requested correctness work. Passing fixture comparisons establish the recorded coverage, not correctness for every possible graph. The remaining uncommon-graph audit is still open.
 
 ## Approved debug comparison rule
 

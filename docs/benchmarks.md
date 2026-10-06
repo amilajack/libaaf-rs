@@ -1,6 +1,6 @@
 # Mac performance baseline
 
-This diagnostic baseline does **not** pass the requested acceptance gates. Native Rust now uses file-backed loading but still exceeds the C +10% peak-memory limit. The owned-buffer numbers below are retained as historical baselines. Normal desktop activity continued during measurement, so a controlled final run is still required.
+The user accepted current performance on 2026-10-06 and excluded further optimization. Historical diagnostic runs below did not consistently pass the original numeric gates; acceptance by the user does not turn those measurements into passing results. The owned-buffer numbers are retained as historical baselines. Normal desktop activity continued during measurement.
 
 Both harnesses parse the AAF and interpret its timeline. Parsing measures repeated complete load/parse/drop operations; extraction parses once, then repeatedly extracts every embedded audio essence as WAV into the same temporary directory. C is built with CMake Release and the harness with `-O3 -DNDEBUG`; Rust uses the workspace release profile. Logging is disabled. Neither harness prints analysis output inside timed work. No memory measurements are subtracted from the process baseline.
 
@@ -130,3 +130,7 @@ Property records use two checked u64 words instead of three, preserving all 16 b
 A held `PT_Fades.aaf` profile measured 910,832 allocated bytes / 734 allocations for Rust, versus 1,120,512 bytes / 14,841 allocations for C. These held allocations are distinct from process peak RSS. Release executables now use full LTO and panic-abort; recoverable reader errors remain Results, and downstream library users select their own Cargo panic policy. Rust inspection now has a separate development executable, matching the C harness arrangement; both timing executables report u64 nanoseconds.
 
 The five-pair diagnostic run in [benchmark-compact-arenas.json](benchmark-compact-arenas.json) passes its runtime and memory gates. This short run does not establish final acceptance: earlier 21-pair runs still exceeded memory limits. A final longer run covering the private large workload remains required.
+
+## User acceptance
+
+On 2026-10-06 the user stated that performance so far is acceptable. No additional optimization or controlled benchmark run is required for the current task. The measurements, uncertainty, and numeric gate failures above remain unchanged; correctness work continues independently.

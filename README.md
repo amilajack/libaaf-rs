@@ -2,7 +2,7 @@
 
 Native Rust AAF reading, timeline inspection, and embedded audio extraction, with WebAssembly bindings and a local import test app. Based on [LibAAF](https://github.com/agfline/LibAAF) at `7925dff4026be06b4edfacdfe458887c2d6503ca`; GPL-2.0-or-later. Production code runs entirely in Rust. The C submodule is a development reference and supplies the complete upstream fixtures.
 
-**Port acceptance is still in progress.** The main analysis output passes all upstream fixtures and 455 differential cases. Peak memory exceeds the requested C +10% gate, while CLI presentation parity is outside the current scope. See [the feature checklist](docs/features.md) and [measured benchmarks](docs/benchmarks.md).
+The library passes the pinned upstream analyses, extraction hashes, and additional differential checks. The user accepted current performance on 2026-10-06 and excluded further CLI presentation parity work. Historical benchmark gate failures remain recorded. See [the feature checklist](docs/features.md), [verification record](docs/verification.md), and [measured benchmarks](docs/benchmarks.md) for coverage and remaining limitations.
 
 ## Browser import app
 

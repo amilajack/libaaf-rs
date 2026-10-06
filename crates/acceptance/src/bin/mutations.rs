@@ -74,6 +74,46 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
     let mut seen = std::collections::HashSet::new();
     for object in doc.objects() {
+        // Hide a required property by renaming its table entry, keeping its
+        // original payload and the complete compound-file layout intact.
+        let omitted = if object.class == AAFClassID_VaryingValue {
+            Some(PID_VaryingValue_Interpolation)
+        } else if object.class == AAFClassID_ControlPoint {
+            Some(PID_ControlPoint_Time)
+        } else {
+            None
+        };
+        if let Some(pid) = omitted
+            && !seen.contains(&(object.class, pid))
+            && object.property(pid).is_some()
+            && object.property(0xfffe).is_none()
+            && let Some(node) = doc.cfb.child(object.node, "properties")
+        {
+            let stream = doc.cfb.stream(node)?.to_vec()?;
+            let locations: Vec<_> = bytes
+                .windows(stream.len())
+                .enumerate()
+                .filter(|(_, b)| *b == stream)
+                .map(|(i, _)| i)
+                .collect();
+            if let [base] = locations.as_slice() {
+                let count = u16::from_le_bytes([stream[2], stream[3]]) as usize;
+                let entry = (0..count)
+                    .map(|i| 4 + 6 * i)
+                    .find(|&at| stream[at..at + 2] == pid.to_le_bytes())
+                    .unwrap();
+                let mut modified = bytes.clone();
+                modified[base + entry..base + entry + 2].copy_from_slice(&0xfffeu16.to_le_bytes());
+                fs::write(
+                    output.join(format!(
+                        "{}-{pid:04x}-missing.aaf",
+                        doc.class_name(object.class)
+                    )),
+                    modified,
+                )?;
+                seen.insert((object.class, pid));
+            }
+        }
         let mut changes = Vec::new();
         for (class, pid, values) in [
             (
@@ -127,6 +167,33 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     })
                     .to_vec(),
             ));
+        }
+        if object.class == AAFClassID_CompositionMob
+            && object.uid(PID_Mob_UsageCode) == Some(AAFUsage_AdjustedClip)
+        {
+            changes.push((
+                PID_Mob_UsageCode,
+                vec![("subclip".into(), AAFUsage_SubClip.0.to_vec())],
+            ));
+        }
+        if object.class == AAFClassID_ControlPoint
+            && let Some(raw) = object.raw(PID_ControlPoint_Value).filter(|b| b.len() >= 17)
+        {
+            let mut wrong_type = raw.to_vec();
+            wrong_type[1..17].copy_from_slice(&AAFTypeID_Boolean.0);
+            changes.push((
+                PID_ControlPoint_Value,
+                vec![("wrong-type".into(), wrong_type)],
+            ));
+        }
+        if object.class == AAFClassID_TaggedValue
+            && object.string(PID_TaggedValue_Name).as_deref() == Some("_DISABLE_CLIP_FLAG")
+        {
+            let name = "_UNKNOWN_CLIP_FLAG\0"
+                .encode_utf16()
+                .flat_map(u16::to_le_bytes)
+                .collect();
+            changes.push((PID_TaggedValue_Name, vec![("unknown-flag".into(), name)]));
         }
         for (pid, variants) in changes {
             if seen.contains(&(object.class, pid)) {

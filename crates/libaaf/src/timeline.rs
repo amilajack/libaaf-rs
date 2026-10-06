@@ -315,6 +315,7 @@ pub fn parse(doc: &Document) -> Result<Composition> {
     };
     let edit =
         doc.object(doc.header).uid(PID_Header_OperationalPattern) == Some(AAFOPDef_EditProtocol);
+    let mut selected_composition = false;
     for &mob in doc.object(doc.content).references(PID_ContentStorage_Mobs) {
         let o = doc.object(mob);
         if o.class != AAFClassID_CompositionMob {
@@ -324,10 +325,11 @@ pub fn parse(doc: &Document) -> Result<Composition> {
         if usage != Some(AAFUsage_TopLevel) && (edit || usage.is_some()) {
             continue;
         }
-        if parser.composition.name.is_some() {
+        if selected_composition {
             parser.warn(mob, "multiple top-level compositions unsupported");
             break;
         }
+        selected_composition = true;
         parser.composition.name = o.string(PID_Mob_Name);
         parser.composition.metadata = metadata(doc, mob);
         for &slot in o.references(PID_Mob_Slots) {
@@ -492,8 +494,15 @@ impl Parser<'_> {
                 ctx.muted = disabled.as_deref() != Some("0");
                 o.reference(PID_Selector_Alternates)
                     .or_else(|| o.reference(PID_Selector_Selected))
-            } else {
+            } else if self
+                .doc
+                .named_references(id, "ComponentAttributeList")
+                .is_empty()
+            {
                 o.reference(PID_Selector_Selected)
+            } else {
+                self.warn(id, "selector attributes have no disable-clip flag");
+                None
             };
             if let Some(child) = chosen {
                 self.segment(child, track, ctx, false, None, None)?;
@@ -650,6 +659,7 @@ impl Parser<'_> {
         if o.class != AAFClassID_VaryingValue {
             return None;
         }
+        o.raw(PID_VaryingValue_Interpolation)?;
         let interp = self.doc.weak_uid(id, PID_VaryingValue_Interpolation);
         let interpolation = match interp {
             Some(AAFInterpolationDef_None) => Interpolation::None,
@@ -662,8 +672,9 @@ impl Parser<'_> {
         let points: Vec<_> = o
             .references(PID_VaryingValue_PointList)
             .iter()
-            .filter_map(|&id| {
-                let o = self.doc.object(id);
+            .map(|&id| self.doc.object(id))
+            .filter(|o| o.class == AAFClassID_ControlPoint)
+            .map(|o| {
                 let time = o.rational(PID_ControlPoint_Time)?;
                 let (typ, b) = o.indirect(PID_ControlPoint_Value)?;
                 if typ != AAFTypeID_Rational {
@@ -671,7 +682,7 @@ impl Parser<'_> {
                 }
                 Some((time, Rational::from_bytes(b).ok()?))
             })
-            .collect();
+            .collect::<Option<Vec<_>>>()?;
         if points.is_empty() {
             return None;
         }
@@ -681,6 +692,32 @@ impl Parser<'_> {
             interpolation,
             points,
         })
+    }
+    fn gain_curve(&self, id: ObjectId) -> Option<Curve> {
+        let o = self.doc.object(id);
+        let def = o.uid(PID_Parameter_Definition)?;
+        if def != AAFParameterDef_Amplitude
+            && (o.class != AAFClassID_VaryingValue
+                || !self
+                    .doc
+                    .object(self.doc.dictionary)
+                    .references(PID_Dictionary_ParameterDefinitions)
+                    .iter()
+                    .any(|&id| {
+                        let o = self.doc.object(id);
+                        o.uid(PID_DefinitionObject_Identification) == Some(def)
+                            && o.string(PID_DefinitionObject_Name).as_deref()
+                                == Some("AvidControlClipRatio")
+                    }))
+        {
+            return None;
+        }
+        let curve = self.curve(id)?;
+        if o.class == AAFClassID_VaryingValue && curve.constant && curve.value() == 1.0 {
+            None
+        } else {
+            Some(curve)
+        }
     }
     fn parameters(
         &mut self,
@@ -696,24 +733,10 @@ impl Parser<'_> {
             .references(PID_OperationGroup_Parameters)
         {
             let o = self.doc.object(pid);
-            let def = o.uid(PID_Parameter_Definition);
-            let Some(curve) = self.curve(pid) else {
-                continue;
-            };
             if op == Some(AAFOperationDef_MonoAudioGain) {
-                if def != Some(AAFParameterDef_Amplitude)
-                    && (o.class != AAFClassID_VaryingValue
-                        || !self.doc.objects().any(|o| {
-                            o.uid(PID_DefinitionObject_Identification) == def
-                                && o.string(PID_DefinitionObject_Name).as_deref()
-                                    == Some("AvidControlClipRatio")
-                        }))
-                {
+                let Some(curve) = self.gain_curve(pid) else {
                     continue;
-                }
-                if o.class == AAFClassID_VaryingValue && curve.constant && curve.value() == 1.0 {
-                    continue;
-                }
+                };
                 if affect_track {
                     if track.gain.is_none() {
                         track.gain = Some(curve);
@@ -726,9 +749,10 @@ impl Parser<'_> {
                     ctx.automation = Some(curve);
                 }
             } else if op == Some(AAFOperationDef_MonoAudioPan)
-                && def == Some(AAFParameterDef_Pan)
+                && o.uid(PID_Parameter_Definition) == Some(AAFParameterDef_Pan)
                 && affect_track
                 && (o.class == AAFClassID_ConstantValue || track.pan.is_none())
+                && let Some(curve) = self.curve(pid)
             {
                 track.pan = Some(curve);
             }
@@ -794,12 +818,14 @@ impl Parser<'_> {
         if o.class == AAFClassID_SourceClip {
             self.resolve_clip(id, clip, video)?;
         } else if o.class == AAFClassID_OperationGroup {
-            if !adjusted
-                && self.doc.weak_uid(id, PID_OperationGroup_Operation)
-                    == Some(AAFOperationDef_MonoAudioGain)
+            if self.doc.weak_uid(id, PID_OperationGroup_Operation)
+                == Some(AAFOperationDef_MonoAudioGain)
             {
                 for &param in o.references(PID_OperationGroup_Parameters) {
-                    if let Some(c) = self.curve(param) {
+                    if adjusted && self.doc.object(param).class == AAFClassID_ConstantValue {
+                        continue;
+                    }
+                    if let Some(c) = self.gain_curve(param) {
                         if c.constant && clip.gain.is_none() {
                             clip.gain = Some(c);
                         } else if !c.constant && clip.automation.is_none() {

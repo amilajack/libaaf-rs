@@ -111,6 +111,7 @@ fn parse_info(mut read: impl FnMut(u64, usize) -> Result<Vec<u8>>) -> Result<Aud
     if info.channels == 0
         || info.sample_size == 0
         || info.sample_rate == 0
+        || info.sample_rate >= i32::MAX as u32
         || !info.sample_size.is_multiple_of(8)
     {
         return Err(Error::invalid("audio format", 0));

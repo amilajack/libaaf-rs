@@ -305,3 +305,118 @@ fn reject_pcm_descriptor_truncation_and_fractional_rates() {
         assert!(doc.composition().is_err(), "invalid PCM property {pid:04x}");
     }
 }
+
+#[test]
+fn reject_media_rates_that_cannot_fit_aaf_rationals() {
+    let doc = Document::from_bytes(fixture(), ReaderOptions::default()).unwrap();
+    let composition = doc.composition().unwrap();
+    let node = composition
+        .essences
+        .iter()
+        .find_map(|e| e.embedded_node)
+        .unwrap();
+    let mut wave = doc.cfb.stream(node).unwrap().to_vec().unwrap();
+    let fmt = wave.windows(4).position(|b| b == b"fmt ").unwrap();
+    for rate in [0, i32::MAX as u32, u32::MAX] {
+        wave[fmt + 12..fmt + 16].copy_from_slice(&rate.to_le_bytes());
+        assert!(
+            media::audio_info(&wave).is_err(),
+            "invalid sample rate {rate}"
+        );
+    }
+    wave[fmt + 12..fmt + 16].copy_from_slice(&48000u32.to_le_bytes());
+    assert_eq!(media::audio_info(&wave).unwrap().sample_rate, 48000);
+}
+
+#[test]
+fn unnamed_top_level_composition_is_not_parsed_twice() {
+    let mut bytes = fixture();
+    let doc = Document::from_bytes(bytes.clone(), ReaderOptions::default()).unwrap();
+    let mob = doc
+        .object(doc.content)
+        .references(PID_ContentStorage_Mobs)
+        .iter()
+        .map(|&id| doc.object(id))
+        .find(|o| o.class == AAFClassID_CompositionMob)
+        .unwrap();
+    let name = doc
+        .object(doc.content)
+        .string(PID_ContentStorage_Mobs)
+        .unwrap();
+    let index = doc
+        .cfb
+        .child(doc.object(doc.content).node, &format!("{name} index"))
+        .unwrap();
+    let index_node = index;
+    let mut index = doc.cfb.stream(index_node).unwrap().to_vec().unwrap();
+    let count = u32::from_le_bytes(index[..4].try_into().unwrap()) as usize;
+    let stride = 8 + index[14] as usize;
+    let first_entry = (0..count)
+        .map(|i| 15 + i * stride)
+        .find(|&at| {
+            let key = u32::from_le_bytes(index[at..at + 4].try_into().unwrap());
+            doc.cfb
+                .child(doc.object(doc.content).node, &format!("{name}{{{key:x}}}"))
+                == Some(mob.node)
+        })
+        .unwrap();
+    assert!(first_entry > 15, "set iteration must have a later entry");
+    let props_node = doc.cfb.child(mob.node, "properties").unwrap();
+    let mut props = doc.cfb.stream(props_node).unwrap().to_vec().unwrap();
+    let count = u16::from_le_bytes(props[2..4].try_into().unwrap()) as usize;
+    let name_entry = (0..count)
+        .map(|i| 4 + i * 6)
+        .find(|&at| props[at..at + 2] == PID_Mob_Name.to_le_bytes())
+        .unwrap();
+    // A malformed set repeats the composition after its first occurrence.
+    // Even without a name it must contribute its tracks only once.
+    index.copy_within(first_entry..first_entry + stride, first_entry - stride);
+    overwrite_fixture_stream(&doc.cfb, &mut bytes, index_node, &index);
+    let named = Document::from_bytes(bytes.clone(), ReaderOptions::default()).unwrap();
+    let expected = named.composition().unwrap();
+    assert!(!expected.tracks.is_empty());
+    props[name_entry..name_entry + 2].copy_from_slice(&0xfffeu16.to_le_bytes());
+    overwrite_fixture_stream(&doc.cfb, &mut bytes, props_node, &props);
+    let unnamed = Document::from_bytes(bytes, ReaderOptions::default()).unwrap();
+    let actual = unnamed.composition().unwrap();
+    assert!(actual.name.is_none());
+    assert_eq!(actual.tracks.len(), expected.tracks.len());
+    assert_eq!(actual.essences.len(), expected.essences.len());
+    for (actual, expected) in actual.tracks.iter().zip(&expected.tracks) {
+        assert_eq!(actual.items.len(), expected.items.len());
+    }
+    assert!(
+        actual
+            .diagnostics
+            .iter()
+            .any(|d| { d.message == "multiple top-level compositions unsupported" })
+    );
+}
+
+// Test-only in-place edits preserve the CFB allocation chains and stream sizes.
+fn overwrite_fixture_stream(cfb: &CompoundFile, bytes: &mut [u8], node: u32, data: &[u8]) {
+    let node = cfb.nodes.get(node as usize).unwrap();
+    assert_eq!(node.size as usize, data.len());
+    let sector_size = cfb.header.sector_size;
+    let mini = node.kind != 5 && node.size < u64::from(cfb.header.mini_cutoff);
+    let unit = if mini { 64 } else { sector_size };
+    let mut sid = node.start;
+    for chunk in data.chunks(unit) {
+        let offset = if mini {
+            let logical = sid as usize * 64;
+            let mut root_sector = cfb.nodes.get(0).unwrap().start;
+            for _ in 0..logical / sector_size {
+                root_sector = cfb.fat[root_sector as usize];
+            }
+            (root_sector as usize + 1) * sector_size + logical % sector_size
+        } else {
+            (sid as usize + 1) * sector_size
+        };
+        bytes[offset..offset + chunk.len()].copy_from_slice(chunk);
+        sid = if mini {
+            cfb.minifat[sid as usize]
+        } else {
+            cfb.fat[sid as usize]
+        };
+    }
+}

@@ -1,6 +1,6 @@
 # Verification record
 
-2026-10-06, Apple M5, macOS 27.0.1, Rust 1.99.0. The complete native port is not yet accepted: see features.md and benchmarks.md for outstanding CLI fidelity and memory work.
+2026-10-06, Apple M5, macOS 27.0.1, Rust 1.99.0. Current performance is accepted by the user; further CLI presentation work is excluded. See features.md for the verified coverage and remaining uncommon-graph audit.
 
 - All 65 upstream AAF fixtures parse and produce timelines. Every stream also matches between native file-backed and owned-buffer loading, including full copies and trimmed ranges.
 - Native cache tests cover boundary crossings, large direct reads, concurrent readers, truncation errors and overflowing offsets. Malformed files also exercise native loading through a Unicode temporary path.
@@ -43,7 +43,7 @@ Version-controlled pre-commit hooks invoke the canonical CI suite without rewrit
 ## Library parity follow-up (CLI presentation excluded)
 
 - 816 direct extraction API comparisons check status, filenames, and exact SHA-256 hashes across all fixtures: original/WAV/BWAV, whole essence and three trimmed ranges. Four fixtures contain embedded audio (48 content-bearing format/range cases); the remaining fixtures verify that no embedded extraction is attempted. Additional cases cover Unicode output paths, missing parents, and non-directory output paths without modifying their sentinel files.
-- 350 generated graph cases vary source offsets, timecode start/FPS, transition cut points, parameter identifiers, constant rational values, and embedded WAV metadata. Each compares interpreted timeline output against the pinned C library. Generated large-header WAVs additionally compare extraction statuses and bytes. Fixture modifications exist only in temporary directories.
+- 371 generated graph cases vary source offsets, timecode start/FPS, transition cut points, parameter identifiers, constant rational values, and embedded WAV metadata. Each compares interpreted timeline output against the pinned C library. Generated large-header WAVs additionally compare extraction statuses and bytes. Fixture modifications exist only in temporary directories.
 - The audit corrected edit-rate-first timecode formatting, parameter-specific fade interpolation, varying-only Avid clip-ratio handling, existing-pan precedence, and complete-summary precedence over embedded/external headers. Incomplete summaries use bounded header reads beyond 64 KiB.
 - The pinned C extractor conservatively counts header offsets twice when checking some requested ranges. The Rust implementation now preserves that rejection with checked arithmetic. The existing AIFF byte-selection quirk is also retained. Explicit Rust `FrameRange { length: 0, .. }` means an empty range; `None` selects the whole essence.
 - Shared reference lists use monotone starts instead of redundant counts. Standard dictionary property names borrow static strings, and 16-byte reference identifiers are stored inline. Raw unknown properties remain intact.
@@ -55,3 +55,9 @@ The reference CMake build explicitly pins `LIBAAF_VERSION=v1.0-30-g7925dff`. Git
 PCM descriptor regression fixtures now reject oversized channel/sample widths and fractional or negative PCM rates before narrowing. WASM tests additionally verify exact bigint frame extraction, per-source clip ranges, invalid indexes, zero-length extraction, and rational source metadata.
 
 Compact record boundary tests preserve full property IDs/stored forms and reject offset/reference-prefix overflow. A forced directory-hash-collision test verifies exact and case-insensitive lookup. The wasm constructor now consumes its binding input allocation, avoiding a second full AAF copy. The generated JavaScript constructor signature is unchanged.
+
+## Selector, automation, composition and sample-rate correctness
+
+The reader now skips selectors with nonempty attributes but no disable flag, rejects an entire automation curve when a control point is malformed, and requires a varying value's interpolation property. Gain parameters in derivation chains use the same definition and unity-curve rules as direct operations; AdjustedClip ignores constant gain while retaining eligible varying gain. These rules match the pinned C implementation. Composition selection no longer depends on the presence of a name, preventing duplicate tracks when an unnamed top-level composition is encountered again. WAV/AIFF sample rates at or above INT_MAX are rejected before conversion into signed AAF rationals.
+
+The generated graph suite includes wrong-type control-point values, missing control-point times, missing interpolation, and unknown selector flags. All 371 comparisons pass. Focused malformed-input tests include invalid media rates and repeated unnamed composition references. The latest AddressSanitizer document/ProTools/inspection campaign completed 66,636 executions in 61 seconds without a crash. The rebuilt WASM module imports all five nested Downloads AAFs with matching C track/clip counts (768 tracks, 1,752 clips).
