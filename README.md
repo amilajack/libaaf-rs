@@ -94,3 +94,7 @@ No crates.io publication or public release is configured.
 ### File-backed reader API changes
 
 `CompoundFile::sector` returns `Cow<[u8]>`. `Stream::to_vec` and `prefix` now return `Result<Vec<u8>>`; propagate failures with `?`. `chunks` yields fallible `Cow<[u8]>` values in bounded pieces. Use `reader` or `copy_to` for streaming extraction. `Node::name`, `Object::properties`, and `Property::references` use boxed immutable storage; ordinary indexing, iteration, and borrowed access are unchanged. Convert with `into()` when constructing these fields. Native files must remain unchanged while open; `Document::from_bytes` retains snapshot semantics.
+
+### Required local verification hooks
+
+Run `python3 tooling/install_hooks.py` after cloning. The versioned pre-commit hook runs `python3 tooling/verify.py all --staged`: the same formatting, Clippy/type checking, tests, documentation, release build, C differential/extraction checks, fuzz compilation, and wasm/web build/tests used in CI. Install the pinned Rust/wasm toolchain, CMake, a C compiler, Node/npm, and wasm-pack 0.15.0 first. Missing tools or failed checks block the commit. Stage all intended files and keep tracked files synchronized with the index so verification covers the proposed commit. Checks never auto-format source files or bypass failures. The installer preserves any existing hook setup by refusing to replace it.
