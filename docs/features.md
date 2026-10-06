@@ -4,7 +4,7 @@ Reference: `agfline/LibAAF@7925dff4026be06b4edfacdfe458887c2d6503ca`. Checkmarks
 
 ## Storage and AAF core
 
-- [x] Native file-backed loading with a 64 KiB cache; owned-buffer wasm input and fallible streaming reads
+- [x] Native file-backed loading with a 4 KiB cache; owned-buffer wasm input and fallible streaming reads
 - [x] CFB v3/v4 headers, DIFAT/FAT/MiniFAT, directory tree, mini streams and regular streams
 - [x] Checked offsets, lengths and allocation-table bounds; directory/allocation cycles fail
 - [x] Standard definitions generated from pinned headers and standard class/property registration
@@ -27,6 +27,7 @@ Reference: `agfline/LibAAF@7925dff4026be06b4edfacdfe458887c2d6503ca`. Checkmarks
 - [x] ProTools localized rendered fade/SAE names, recovery with sufficient handles, SAE removal
 - [x] Resolve multichannel combiner length behavior
 - [x] Native/wasm API exposes the pinned reader’s normalized two-point transition curves
+- [x] Additional generated timecode, source-offset, transition, parameter and media-summary cases compared
 - [ ] Remaining uncommon graph combinations audited
 
 ## Media and extraction
@@ -37,9 +38,10 @@ Reference: `agfline/LibAAF@7925dff4026be06b4edfacdfe458887c2d6503ca`. Checkmarks
 - [x] Upstream analysis expectations and six extraction hashes
 - [x] Bounds failures for clips past media end and arithmetic overflow in sample ranges
 - [x] Invalid extraction ranges/formats are rejected before writing or creating/truncating a file
-- [ ] Every extraction CLI option combination and filesystem I/O failure audited
+- [x] Direct library extraction compared for original/WAV/BWAV, ranges, Unicode paths and output I/O failures
+- [ ] Every extraction CLI option combination (excluded from current scope)
 
-## CLI
+## CLI (excluded from further parity work by user request)
 
 - [x] Main summary/essence/clip options, four position formats, sample-rate override, metadata/automation display
 - [x] CFB header, allocation tables, directory paths and class/metadictionary comparisons
@@ -73,7 +75,7 @@ Reference: `agfline/LibAAF@7925dff4026be06b4edfacdfe458887c2d6503ca`. Checkmarks
 - [ ] Every designated workload peak memory at most 10% above C
 - [ ] Controlled final acceptance run, memory profile and remaining optimization
 
-Completion requires all acceptance gates and the remaining fidelity work. Repository creation, the passing main fixture suite and the working web app do not establish complete port parity.
+The user excluded further CLI parity work on 2026-10-06. Completion of the remaining library scope requires its fidelity checks and all performance acceptance gates. Repository creation, the passing main fixture suite and the working web app do not establish complete port parity.
 
 ## Approved debug comparison rule
 

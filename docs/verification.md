@@ -39,3 +39,13 @@ The shared metadata arena, pooled directory names, and allocation-free contiguou
 The rebuilt wasm package and native CLI both pass all five recursively discovered Downloads AAFs (768 tracks, 1,752 clips), with input hashes unchanged. Chrome also rendered the embedded-audio example using this build. A fresh AddressSanitizer document/ProTools/inspection campaign completed 50,612 executions in 61 seconds without a crash.
 
 Version-controlled pre-commit hooks invoke the canonical CI suite without rewriting files. The hook is installed locally, and an intentionally unformatted staged change was rejected before a commit could be created.
+
+## Library parity follow-up (CLI presentation excluded)
+
+- 816 direct extraction API comparisons check status, filenames, and exact SHA-256 hashes across all fixtures: original/WAV/BWAV, whole essence and three trimmed ranges. Four fixtures contain embedded audio (48 content-bearing format/range cases); the remaining fixtures verify that no embedded extraction is attempted. Additional cases cover Unicode output paths, missing parents, and non-directory output paths without modifying their sentinel files.
+- 350 generated graph cases vary source offsets, timecode start/FPS, transition cut points, parameter identifiers, constant rational values, and embedded WAV metadata. Each compares interpreted timeline output against the pinned C library. Generated large-header WAVs additionally compare extraction statuses and bytes. Fixture modifications exist only in temporary directories.
+- The audit corrected edit-rate-first timecode formatting, parameter-specific fade interpolation, varying-only Avid clip-ratio handling, existing-pan precedence, and complete-summary precedence over embedded/external headers. Incomplete summaries use bounded header reads beyond 64 KiB.
+- The pinned C extractor conservatively counts header offsets twice when checking some requested ranges. The Rust implementation now preserves that rejection with checked arithmetic. The existing AIFF byte-selection quirk is also retained. Explicit Rust `FrameRange { length: 0, .. }` means an empty range; `None` selects the whole essence.
+- Shared reference lists use monotone starts instead of redundant counts. Standard dictionary property names borrow static strings, and 16-byte reference identifiers are stored inline. Raw unknown properties remain intact.
+
+The follow-up AddressSanitizer document/ProTools/inspection campaign completed 62,719 executions in 61 seconds without a crash. The rebuilt wasm module again passed all five Downloads sessions.

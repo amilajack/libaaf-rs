@@ -103,8 +103,9 @@ pub fn timecode(value: i64, rate: Rational, tc: &Timecode) -> String {
         (value as f32 / (unit / fps)) as i64
     };
     let mut n = frames.unsigned_abs() as i128;
-    let nominal = tc.fps.max(1) as i128;
-    if tc.drop {
+    let nominal = fps.round().max(1.0) as i128;
+    let drop = tc.drop && matches!(nominal, 30 | 60 | 120);
+    if drop {
         let per_minute = nominal * 60 - 2;
         let per_ten = per_minute * 10 + 2;
         let tens = n / per_ten;
@@ -124,7 +125,7 @@ pub fn timecode(value: i64, rate: Rational, tc: &Timecode) -> String {
         n / nominal / 3600,
         n / nominal / 60 % 60,
         n / nominal % 60,
-        if tc.drop { ';' } else { ':' },
+        if drop { ';' } else { ':' },
         n % nominal
     )
 }
@@ -978,4 +979,28 @@ pub fn raw_properties(doc: &Document, b: &[u8], padding: &str) -> crate::Result<
         offset += len;
     }
     Ok(s)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn timecode_prefers_supported_edit_rate_over_nominal_field() {
+        let tc = Timecode {
+            start: 0,
+            fps: 30,
+            drop: false,
+            edit_rate: Rational::new(24, 1),
+        };
+        assert_eq!(timecode(86400, Rational::new(24, 1), &tc), "01:00:00:00");
+        let tc = Timecode { drop: true, ..tc };
+        assert_eq!(timecode(86400, Rational::new(24, 1), &tc), "01:00:00:00");
+        let tc = Timecode {
+            fps: 30,
+            drop: false,
+            edit_rate: Rational::new(30026, 1000),
+            ..tc
+        };
+        assert_eq!(timecode(108000, Rational::new(30, 1), &tc), "01:00:00:00");
+    }
 }

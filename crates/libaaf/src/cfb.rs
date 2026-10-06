@@ -10,7 +10,8 @@ use std::{
     path::Path,
     sync::Mutex,
 };
-const CACHE_SIZE: usize = 64 * 1024;
+const CACHE_SIZE: usize = 4 * 1024;
+const COPY_SIZE: usize = 64 * 1024;
 
 /// Native files retain an open handle and a bounded read cache. Owned input is
 /// used by wasm and callers that require an immutable snapshot.
@@ -709,8 +710,8 @@ impl<'a> Stream<'a> {
         self.ranges()
             .flat_map(|r| {
                 (r.start..r.end)
-                    .step_by(CACHE_SIZE)
-                    .map(move |start| start..r.end.min(start.saturating_add(CACHE_SIZE)))
+                    .step_by(COPY_SIZE)
+                    .map(move |start| start..r.end.min(start.saturating_add(COPY_SIZE)))
             })
             .map(|range| self.file.data.view(range))
     }
@@ -741,8 +742,8 @@ impl<'a> Stream<'a> {
             let right = end.min(next);
             if left < right {
                 let physical = range.start + left - pos;
-                for start in (physical..physical + right - left).step_by(CACHE_SIZE) {
-                    let end = (start + CACHE_SIZE).min(physical + right - left);
+                for start in (physical..physical + right - left).step_by(COPY_SIZE) {
+                    let end = (start + COPY_SIZE).min(physical + right - left);
                     out.write_all(&self.file.data.view(start..end)?)?;
                 }
             }

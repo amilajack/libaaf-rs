@@ -1,0 +1,1649 @@
+{
+  "measured_utc": "2026-10-06T22:33:35.093737+00:00",
+  "environment": {
+    "os": "ProductName:\t\tmacOS\nProductVersion:\t\t27.0.1\nBuildVersion:\t\t26A434",
+    "cpu": "Apple M5",
+    "memory_bytes": "17179869184",
+    "rust": "rustc 1.99.0 (b940084d7 2026-09-28)",
+    "cc": "Apple clang version 21.0.0 (clang-2100.3.34.2)\nTarget: arm64-apple-darwin27.0.0\nThread model: posix\nInstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin",
+    "reference_commit": "7925dff4026be06b4edfacdfe458887c2d6503ca",
+    "storage": "same temporary directory on internal disk; overwritten WAV output; page cache warm",
+    "concurrency": "sequential alternating paired runs; normal user desktop activity",
+    "build": "Rust release thin LTO; C reference CMake Release and harness -O3 -DNDEBUG"
+  },
+  "results": [
+    {
+      "workload": "small",
+      "fixture": "MC_Empty.aaf",
+      "input_bytes": 352256,
+      "input_sha256": "dfdd26dff0755f2d1995dc415bd888bd7afa81b3627416e73aeddfadc662742b",
+      "mode": "parse",
+      "iterations": 200,
+      "pairs": [
+        {
+          "c": {
+            "seconds": 0.000956945,
+            "peak_rss": 3833856,
+            "peak_footprint": 3162496
+          },
+          "rust": {
+            "seconds": 0.000773908,
+            "peak_rss": 4358144,
+            "peak_footprint": 3506560
+          }
+        },
+        {
+          "rust": {
+            "seconds": 0.000768031,
+            "peak_rss": 4358144,
+            "peak_footprint": 3506560
+          },
+          "c": {
+            "seconds": 0.000812275,
+            "peak_rss": 3620864,
+            "peak_footprint": 2949504
+          }
+        },
+        {
+          "c": {
+            "seconds": 0.00078014,
+            "peak_rss": 3801088,
+            "peak_footprint": 3129728
+          },
+          "rust": {
+            "seconds": 0.000784299,
+            "peak_rss": 4341760,
+            "peak_footprint": 3490176
+          }
+        },
+        {
+          "rust": {
+            "seconds": 0.000757739,
+            "peak_rss": 4210688,
+            "peak_footprint": 3359104
+          },
+          "c": {
+            "seconds": 0.00079901,
+            "peak_rss": 3604480,
+            "peak_footprint": 2933120
+          }
+        },
+        {
+          "c": {
+            "seconds": 0.00080472,
+            "peak_rss": 3817472,
+            "peak_footprint": 3146112
+          },
+          "rust": {
+            "seconds": 0.000695016,
+            "peak_rss": 4341760,
+            "peak_footprint": 3490176
+          }
+        },
+        {
+          "rust": {
+            "seconds": 0.000694142,
+            "peak_rss": 4194304,
+            "peak_footprint": 3342720
+          },
+          "c": {
+            "seconds": 0.000779355,
+            "peak_rss": 3850240,
+            "peak_footprint": 3178880
+          }
+        },
+        {
+          "c": {
+            "seconds": 0.00080131,
+            "peak_rss": 3620864,
+            "peak_footprint": 2949504
+          },
+          "rust": {
+            "seconds": 0.000710232,
+            "peak_rss": 4259840,
+            "peak_footprint": 3408256
+          }
+        },
+        {
+          "rust": {
+            "seconds": 0.000730463,
+            "peak_rss": 4358144,
+            "peak_footprint": 3506560
+          },
+          "c": {
+            "seconds": 0.000772555,
+            "peak_rss": 3866624,
+            "peak_footprint": 3195264
+          }
+        },
+        {
+          "c": {
+            "seconds": 0.00076289,
+            "peak_rss": 3801088,
+            "peak_footprint": 3129728
+          },
+          "rust": {
+            "seconds": 0.000681404,
+            "peak_rss": 4145152,
+            "peak_footprint": 3293568
+          }
+        },
+        {
+          "rust": {
+            "seconds": 0.000737929,
+            "peak_rss": 4194304,
+            "peak_footprint": 3342720
+          },
+          "c": {
+            "seconds": 0.000798835,
+            "peak_rss": 3620864,
+            "peak_footprint": 2949504
+          }
+        },
+        {
+          "c": {
+            "seconds": 0.00074376,
+            "peak_rss": 3833856,
+            "peak_footprint": 3162496
+          },
+          "rust": {
+            "seconds": 0.000681702,
+            "peak_rss": 4276224,
+            "peak_footprint": 3424640
+          }
+        },
+        {
+          "rust": {
+            "seconds": 0.000688856,
+            "peak_rss": 4210688,
+            "peak_footprint": 3359104
+          },
+          "c": {
+            "seconds": 0.000753,
+            "peak_rss": 3637248,
+            "peak_footprint": 2965888
+          }
+        },
+        {
+          "c": {
+            "seconds": 0.000757945,
+            "peak_rss": 3637248,
+            "peak_footprint": 2965888
+          },
+          "rust": {
+            "seconds": 0.00063533,
+            "peak_rss": 4358144,
+            "peak_footprint": 3506560
+          }
+        },
+        {
+          "rust": {
+            "seconds": 0.000704781,
+            "peak_rss": 4325376,
+            "peak_footprint": 3473792
+          },
+          "c": {
+            "seconds": 0.000819845,
+            "peak_rss": 3850240,
+            "peak_footprint": 3178880
+          }
+        },
+        {
+          "c": {
+            "seconds": 0.00079649,
+            "peak_rss": 3833856,
+            "peak_footprint": 3162496
+          },
+          "rust": {
+            "seconds": 0.000648861,
+            "peak_rss": 4341760,
+            "peak_footprint": 3490176
+          }
+        },
+        {
+          "rust": {
+            "seconds": 0.000686813,
+            "peak_rss": 4177920,
+            "peak_footprint": 3326336
+          },
+          "c": {
+            "seconds": 0.000712815,
+            "peak_rss": 3604480,
+            "peak_footprint": 2933120
+          }
+        },
+        {
+          "c": {
+            "seconds": 0.0008268,
+            "peak_rss": 3637248,
+            "peak_footprint": 2965888
+          },
+          "rust": {
+            "seconds": 0.000729699,
+            "peak_rss": 4390912,
+            "peak_footprint": 3539328
+          }
+        },
+        {
+          "rust": {
+            "seconds": 0.000713854,
+            "peak_rss": 4259840,
+            "peak_footprint": 3408256
+          },
+          "c": {
+            "seconds": 0.00077024,
+            "peak_rss": 3850240,
+            "peak_footprint": 3178880
+          }
+        },
+        {
+          "c": {
+            "seconds": 0.00076439,
+            "peak_rss": 3620864,
+            "peak_footprint": 2949504
+          },
+          "rust": {
+            "seconds": 0.000651814,
+            "peak_rss": 4292608,
+            "peak_footprint": 3441024
+          }
+        },
+        {
+          "rust": {
+            "seconds": 0.00069912,
+            "peak_rss": 4308992,
+            "peak_footprint": 3457408
+          },
+          "c": {
+            "seconds": 0.00074849,
+            "peak_rss": 3850240,
+            "peak_footprint": 3162472
+          }
+        },
+        {
+          "c": {
+            "seconds": 0.00083942,
+            "peak_rss": 3620864,
+            "peak_footprint": 2949504
+          },
+          "rust": {
+            "seconds": 0.000692139,
+            "peak_rss": 4292608,
+            "peak_footprint": 3441024
+          }
+        }
+      ],
+      "c_median_seconds": 0.00078014,
+      "rust_median_seconds": 0.00069912,
+      "paired_geomean_ratio": 0.8956312182154046,
+      "ratio_95_percent_ci": [
+        0.8733939611137557,
+        0.9184346523521848
+      ],
+      "peak_rss_ratio": 1.1355932203389831,
+      "runtime_pass": true,
+      "memory_pass": false
+    },
+    {
+      "workload": "large",
+      "fixture": "PT_Fades.aaf",
+      "input_bytes": 713728,
+      "input_sha256": "6c0c097e54f2c5a191246bb92bfdbc55834eeda1a9c8fa9506c89ad459e96a12",
+      "mode": "parse",
+      "iterations": 200,
+      "pairs": [
+        {
+          "c": {
+            "seconds": 0.002233515,
+            "peak_rss": 4374528,
+            "peak_footprint": 3670376
+          },
+          "rust": {
+            "seconds": 0.001708907,
+            "peak_rss": 5390336,
+            "peak_footprint": 4538752
+          }
+        },
+        {
+          "rust": {
+            "seconds": 0.001603889,
+            "peak_rss": 4931584,
+            "peak_footprint": 4080000
+          },
+          "c": {
+            "seconds": 0.0022047,
+            "peak_rss": 4440064,
+            "peak_footprint": 3752320
+          }
+        },
+        {
+          "c": {
+            "seconds": 0.002199375,
+            "peak_rss": 4276224,
+            "peak_footprint": 3588480
+          },
+          "rust": {
+            "seconds": 0.001600883,
+            "peak_rss": 5095424,
+            "peak_footprint": 4243840
+          }
+        },
+        {
+          "rust": {
+            "seconds": 0.001596935,
+            "peak_rss": 5095424,
+            "peak_footprint": 4243840
+          },
+          "c": {
+            "seconds": 0.002179475,
+            "peak_rss": 4587520,
+            "peak_footprint": 3899776
+          }
+        },
+        {
+          "c": {
+            "seconds": 0.002177035,
+            "peak_rss": 4538368,
+            "peak_footprint": 3850624
+          },
+          "rust": {
+            "seconds": 0.001596033,
+            "peak_rss": 4882432,
+            "peak_footprint": 4030848
+          }
+        },
+        {
+          "rust": {
+            "seconds": 0.001609588,
+            "peak_rss": 4947968,
+            "peak_footprint": 4096384
+          },
+          "c": {
+            "seconds": 0.0021691,
+            "peak_rss": 4079616,
+            "peak_footprint": 3391872
+          }
+        },
+        {
+          "c": {
+            "seconds": 0.002174425,
+            "peak_rss": 4096000,
+            "peak_footprint": 3408256
+          },
+          "rust": {
+            "seconds": 0.001649797,
+            "peak_rss": 5193728,
+            "peak_footprint": 4342144
+          }
+        },
+        {
+          "rust": {
+            "seconds": 0.001598389,
+            "peak_rss": 4833280,
+            "peak_footprint": 3981696
+          },
+          "c": {
+            "seconds": 0.00226882,
+            "peak_rss": 4358144,
+            "peak_footprint": 3670400
+          }
+        },
+        {
+          "c": {
+            "seconds": 0.00216613,
+            "peak_rss": 4227072,
+            "peak_footprint": 3539328
+          },
+          "rust": {
+            "seconds": 0.001615972,
+            "peak_rss": 4947968,
+            "peak_footprint": 4096384
+          }
+        },
+        {
+          "rust": {
+            "seconds": 0.001581973,
+            "peak_rss": 5079040,
+            "peak_footprint": 4227456
+          },
+          "c": {
+            "seconds": 0.002186405,
+            "peak_rss": 4407296,
+            "peak_footprint": 3719552
+          }
+        },
+        {
+          "c": {
+            "seconds": 0.002179465,
+            "peak_rss": 4554752,
+            "peak_footprint": 3867008
+          },
+          "rust": {
+            "seconds": 0.001589628,
+            "peak_rss": 5013504,
+            "peak_footprint": 4161920
+          }
+        },
+        {
+          "rust": {
+            "seconds": 0.00159064,
+            "peak_rss": 5029888,
+            "peak_footprint": 4178304
+          },
+          "c": {
+            "seconds": 0.002160685,
+            "peak_rss": 4620288,
+            "peak_footprint": 3932544
+          }
+        },
+        {
+          "c": {
+            "seconds": 0.00217557,
+            "peak_rss": 4636672,
+            "peak_footprint": 3948928
+          },
+          "rust": {
+            "seconds": 0.00160384,
+            "peak_rss": 5029888,
+            "peak_footprint": 4178304
+          }
+        },
+        {
+          "rust": {
+            "seconds": 0.001585841,
+            "peak_rss": 5095424,
+            "peak_footprint": 4243840
+          },
+          "c": {
+            "seconds": 0.00216449,
+            "peak_rss": 3997696,
+            "peak_footprint": 3309952
+          }
+        },
+        {
+          "c": {
+            "seconds": 0.00230336,
+            "peak_rss": 4653056,
+            "peak_footprint": 3965312
+          },
+          "rust": {
+            "seconds": 0.001580367,
+            "peak_rss": 5128192,
+            "peak_footprint": 4276608
+          }
+        },
+        {
+          "rust": {
+            "seconds": 0.001629513,
+            "peak_rss": 5226496,
+            "peak_footprint": 4374912
+          },
+          "c": {
+            "seconds": 0.0021619,
+            "peak_rss": 4636672,
+            "peak_footprint": 3948928
+          }
+        },
+        {
+          "c": {
+            "seconds": 0.002145705,
+            "peak_rss": 4390912,
+            "peak_footprint": 3703168
+          },
+          "rust": {
+            "seconds": 0.001571453,
+            "peak_rss": 5029888,
+            "peak_footprint": 4178304
+          }
+        },
+        {
+          "rust": {
+            "seconds": 0.001572834,
+            "peak_rss": 4915200,
+            "peak_footprint": 4063616
+          },
+          "c": {
+            "seconds": 0.00214187,
+            "peak_rss": 4374528,
+            "peak_footprint": 3686784
+          }
+        },
+        {
+          "c": {
+            "seconds": 0.00215915,
+            "peak_rss": 4407296,
+            "peak_footprint": 3719552
+          },
+          "rust": {
+            "seconds": 0.001586387,
+            "peak_rss": 4898816,
+            "peak_footprint": 4047232
+          }
+        },
+        {
+          "rust": {
+            "seconds": 0.001640373,
+            "peak_rss": 5275648,
+            "peak_footprint": 4424064
+          },
+          "c": {
+            "seconds": 0.00220948,
+            "peak_rss": 4325376,
+            "peak_footprint": 3637632
+          }
+        },
+        {
+          "c": {
+            "seconds": 0.002162615,
+            "peak_rss": 4587520,
+            "peak_footprint": 3899776
+          },
+          "rust": {
+            "seconds": 0.001694205,
+            "peak_rss": 5472256,
+            "peak_footprint": 4620672
+          }
+        }
+      ],
+      "c_median_seconds": 0.00217557,
+      "rust_median_seconds": 0.001598389,
+      "paired_geomean_ratio": 0.7361079065969769,
+      "ratio_95_percent_ci": [
+        0.7275983637238402,
+        0.7447169718488325
+      ],
+      "peak_rss_ratio": 1.176056338028169,
+      "runtime_pass": true,
+      "memory_pass": false
+    },
+    {
+      "workload": "multichannel",
+      "fixture": "DR_Multichannel_7.1_single_source.aaf",
+      "input_bytes": 278528,
+      "input_sha256": "8ad29d43fc64908dce09ffc0fdd6226aadb116cd4b4736088431644e577d5108",
+      "mode": "parse",
+      "iterations": 200,
+      "pairs": [
+        {
+          "c": {
+            "seconds": 0.00056449,
+            "peak_rss": 3506176,
+            "peak_footprint": 2818432
+          },
+          "rust": {
+            "seconds": 0.000546397,
+            "peak_rss": 3801088,
+            "peak_footprint": 2949504
+          }
+        },
+        {
+          "rust": {
+            "seconds": 0.000548576,
+            "peak_rss": 3850240,
+            "peak_footprint": 2998656
+          },
+          "c": {
+            "seconds": 0.000561485,
+            "peak_rss": 3588096,
+            "peak_footprint": 2900352
+          }
+        },
+        {
+          "c": {
+            "seconds": 0.00055958,
+            "peak_rss": 3555328,
+            "peak_footprint": 2867584
+          },
+          "rust": {
+            "seconds": 0.000543946,
+            "peak_rss": 3817472,
+            "peak_footprint": 2965888
+          }
+        },
+        {
+          "rust": {
+            "seconds": 0.000556032,
+            "peak_rss": 3915776,
+            "peak_footprint": 3064192
+          },
+          "c": {
+            "seconds": 0.000561655,
+            "peak_rss": 3489792,
+            "peak_footprint": 2802048
+          }
+        },
+        {
+          "c": {
+            "seconds": 0.000549645,
+            "peak_rss": 3457024,
+            "peak_footprint": 2769280
+          },
+          "rust": {
+            "seconds": 0.000552578,
+            "peak_rss": 3948544,
+            "peak_footprint": 3096960
+          }
+        },
+        {
+          "rust": {
+            "seconds": 0.000560133,
+            "peak_rss": 3883008,
+            "peak_footprint": 3031424
+          },
+          "c": {
+            "seconds": 0.00066194,
+            "peak_rss": 3489792,
+            "peak_footprint": 2785640
+          }
+        },
+        {
+          "c": {
+            "seconds": 0.00056722,
+            "peak_rss": 3473408,
+            "peak_footprint": 2785664
+          },
+          "rust": {
+            "seconds": 0.000550582,
+            "peak_rss": 3964928,
+            "peak_footprint": 3113344
+          }
+        },
+        {
+          "rust": {
+            "seconds": 0.000549826,
+            "peak_rss": 3948544,
+            "peak_footprint": 3096960
+          },
+          "c": {
+            "seconds": 0.000565975,
+            "peak_rss": 3391488,
+            "peak_footprint": 2703744
+          }
+        },
+        {
+          "c": {
+            "seconds": 0.000556425,
+            "peak_rss": 3375104,
+            "peak_footprint": 2687360
+          },
+          "rust": {
+            "seconds": 0.000545635,
+            "peak_rss": 3768320,
+            "peak_footprint": 2916736
+          }
+        },
+        {
+          "rust": {
+            "seconds": 0.000547157,
+            "peak_rss": 3866624,
+            "peak_footprint": 3015040
+          },
+          "c": {
+            "seconds": 0.00056785,
+            "peak_rss": 3555328,
+            "peak_footprint": 2867584
+          }
+        },
+        {
+          "c": {
+            "seconds": 0.00055836,
+            "peak_rss": 3555328,
+            "peak_footprint": 2867584
+          },
+          "rust": {
+            "seconds": 0.000557616,
+            "peak_rss": 4112384,
+            "peak_footprint": 3260800
+          }
+        },
+        {
+          "rust": {
+            "seconds": 0.000540757,
+            "peak_rss": 3751936,
+            "peak_footprint": 2900352
+          },
+          "c": {
+            "seconds": 0.00056574,
+            "peak_rss": 3588096,
+            "peak_footprint": 2900352
+          }
+        },
+        {
+          "c": {
+            "seconds": 0.000559455,
+            "peak_rss": 3473408,
+            "peak_footprint": 2785664
+          },
+          "rust": {
+            "seconds": 0.000547286,
+            "peak_rss": 3964928,
+            "peak_footprint": 3113344
+          }
+        },
+        {
+          "rust": {
+            "seconds": 0.000556062,
+            "peak_rss": 3981312,
+            "peak_footprint": 3129728
+          },
+          "c": {
+            "seconds": 0.00057341,
+            "peak_rss": 3555328,
+            "peak_footprint": 2867584
+          }
+        },
+        {
+          "c": {
+            "seconds": 0.000575665,
+            "peak_rss": 3489792,
+            "peak_footprint": 2802048
+          },
+          "rust": {
+            "seconds": 0.000574937,
+            "peak_rss": 4096000,
+            "peak_footprint": 3244416
+          }
+        },
+        {
+          "rust": {
+            "seconds": 0.000550309,
+            "peak_rss": 3899392,
+            "peak_footprint": 3047808
+          },
+          "c": {
+            "seconds": 0.000559105,
+            "peak_rss": 3375104,
+            "peak_footprint": 2687360
+          }
+        },
+        {
+          "c": {
+            "seconds": 0.00055236,
+            "peak_rss": 3440640,
+            "peak_footprint": 2752896
+          },
+          "rust": {
+            "seconds": 0.000549051,
+            "peak_rss": 4079616,
+            "peak_footprint": 3228032
+          }
+        },
+        {
+          "rust": {
+            "seconds": 0.000544794,
+            "peak_rss": 3751936,
+            "peak_footprint": 2900352
+          },
+          "c": {
+            "seconds": 0.00056371,
+            "peak_rss": 3489792,
+            "peak_footprint": 2802048
+          }
+        },
+        {
+          "c": {
+            "seconds": 0.00056555,
+            "peak_rss": 3473408,
+            "peak_footprint": 2785664
+          },
+          "rust": {
+            "seconds": 0.000595557,
+            "peak_rss": 4096000,
+            "peak_footprint": 3244416
+          }
+        },
+        {
+          "rust": {
+            "seconds": 0.000651844,
+            "peak_rss": 4014080,
+            "peak_footprint": 3162496
+          },
+          "c": {
+            "seconds": 0.000565635,
+            "peak_rss": 3489792,
+            "peak_footprint": 2802048
+          }
+        },
+        {
+          "c": {
+            "seconds": 0.000553025,
+            "peak_rss": 3293184,
+            "peak_footprint": 2605440
+          },
+          "rust": {
+            "seconds": 0.000558046,
+            "peak_rss": 3981312,
+            "peak_footprint": 3129728
+          }
+        }
+      ],
+      "c_median_seconds": 0.00056371,
+      "rust_median_seconds": 0.000550309,
+      "paired_geomean_ratio": 0.9846327395179628,
+      "ratio_95_percent_ci": [
+        0.962467961552569,
+        1.0073079525335402
+      ],
+      "peak_rss_ratio": 1.1461187214611872,
+      "runtime_pass": true,
+      "memory_pass": false
+    },
+    {
+      "workload": "embedded",
+      "fixture": "PT_PCM_Internal.aaf",
+      "input_bytes": 371712,
+      "input_sha256": "c58ee8aaac1bda1959e17d5ba5a7c9137f8fe06a39e2b2433f6199ad96a9846a",
+      "mode": "parse",
+      "iterations": 200,
+      "pairs": [
+        {
+          "c": {
+            "seconds": 0.000912955,
+            "peak_rss": 3833856,
+            "peak_footprint": 3162496
+          },
+          "rust": {
+            "seconds": 0.0007603,
+            "peak_rss": 4177920,
+            "peak_footprint": 3326336
+          }
+        },
+        {
+          "rust": {
+            "seconds": 0.000763439,
+            "peak_rss": 4227072,
+            "peak_footprint": 3375488
+          },
+          "c": {
+            "seconds": 0.000912755,
+            "peak_rss": 3850240,
+            "peak_footprint": 3178880
+          }
+        },
+        {
+          "c": {
+            "seconds": 0.000908745,
+            "peak_rss": 3801088,
+            "peak_footprint": 3129728
+          },
+          "rust": {
+            "seconds": 0.000761151,
+            "peak_rss": 4145152,
+            "peak_footprint": 3293568
+          }
+        },
+        {
+          "rust": {
+            "seconds": 0.000760676,
+            "peak_rss": 4177920,
+            "peak_footprint": 3326336
+          },
+          "c": {
+            "seconds": 0.000894935,
+            "peak_rss": 3407872,
+            "peak_footprint": 2736512
+          }
+        },
+        {
+          "c": {
+            "seconds": 0.000931965,
+            "peak_rss": 3620864,
+            "peak_footprint": 2949504
+          },
+          "rust": {
+            "seconds": 0.000761416,
+            "peak_rss": 4210688,
+            "peak_footprint": 3359104
+          }
+        },
+        {
+          "rust": {
+            "seconds": 0.000749148,
+            "peak_rss": 3948544,
+            "peak_footprint": 3096960
+          },
+          "c": {
+            "seconds": 0.000897005,
+            "peak_rss": 3866624,
+            "peak_footprint": 3195264
+          }
+        },
+        {
+          "c": {
+            "seconds": 0.000901695,
+            "peak_rss": 3833856,
+            "peak_footprint": 3162496
+          },
+          "rust": {
+            "seconds": 0.000748658,
+            "peak_rss": 3981312,
+            "peak_footprint": 3129728
+          }
+        },
+        {
+          "rust": {
+            "seconds": 0.00075299,
+            "peak_rss": 4194304,
+            "peak_footprint": 3342720
+          },
+          "c": {
+            "seconds": 0.000891755,
+            "peak_rss": 3424256,
+            "peak_footprint": 2752896
+          }
+        },
+        {
+          "c": {
+            "seconds": 0.000895865,
+            "peak_rss": 3571712,
+            "peak_footprint": 2900352
+          },
+          "rust": {
+            "seconds": 0.000764335,
+            "peak_rss": 4358144,
+            "peak_footprint": 3506560
+          }
+        },
+        {
+          "rust": {
+            "seconds": 0.00077055,
+            "peak_rss": 4128768,
+            "peak_footprint": 3277184
+          },
+          "c": {
+            "seconds": 0.000928935,
+            "peak_rss": 3817472,
+            "peak_footprint": 3146112
+          }
+        },
+        {
+          "c": {
+            "seconds": 0.0009132,
+            "peak_rss": 3588096,
+            "peak_footprint": 2916736
+          },
+          "rust": {
+            "seconds": 0.000863498,
+            "peak_rss": 4341760,
+            "peak_footprint": 3490176
+          }
+        },
+        {
+          "rust": {
+            "seconds": 0.000775363,
+            "peak_rss": 4177920,
+            "peak_footprint": 3326336
+          },
+          "c": {
+            "seconds": 0.000908495,
+            "peak_rss": 3604480,
+            "peak_footprint": 2933120
+          }
+        },
+        {
+          "c": {
+            "seconds": 0.00091854,
+            "peak_rss": 3571712,
+            "peak_footprint": 2900352
+          },
+          "rust": {
+            "seconds": 0.000765867,
+            "peak_rss": 4177920,
+            "peak_footprint": 3326336
+          }
+        },
+        {
+          "rust": {
+            "seconds": 0.000754387,
+            "peak_rss": 4161536,
+            "peak_footprint": 3309952
+          },
+          "c": {
+            "seconds": 0.00089553,
+            "peak_rss": 3604480,
+            "peak_footprint": 2933120
+          }
+        },
+        {
+          "c": {
+            "seconds": 0.00090818,
+            "peak_rss": 3588096,
+            "peak_footprint": 2916736
+          },
+          "rust": {
+            "seconds": 0.000758059,
+            "peak_rss": 3997696,
+            "peak_footprint": 3146112
+          }
+        },
+        {
+          "rust": {
+            "seconds": 0.000755648,
+            "peak_rss": 3964928,
+            "peak_footprint": 3113344
+          },
+          "c": {
+            "seconds": 0.000908035,
+            "peak_rss": 3653632,
+            "peak_footprint": 2982272
+          }
+        },
+        {
+          "c": {
+            "seconds": 0.00091656,
+            "peak_rss": 3391488,
+            "peak_footprint": 2720128
+          },
+          "rust": {
+            "seconds": 0.000770401,
+            "peak_rss": 3981312,
+            "peak_footprint": 3129728
+          }
+        },
+        {
+          "rust": {
+            "seconds": 0.000763666,
+            "peak_rss": 4227072,
+            "peak_footprint": 3375488
+          },
+          "c": {
+            "seconds": 0.000905465,
+            "peak_rss": 3833856,
+            "peak_footprint": 3162496
+          }
+        },
+        {
+          "c": {
+            "seconds": 0.000933785,
+            "peak_rss": 3817472,
+            "peak_footprint": 3146112
+          },
+          "rust": {
+            "seconds": 0.000765883,
+            "peak_rss": 4112384,
+            "peak_footprint": 3260800
+          }
+        },
+        {
+          "rust": {
+            "seconds": 0.000751796,
+            "peak_rss": 4177920,
+            "peak_footprint": 3326336
+          },
+          "c": {
+            "seconds": 0.00089243,
+            "peak_rss": 3407872,
+            "peak_footprint": 2736512
+          }
+        },
+        {
+          "c": {
+            "seconds": 0.00091095,
+            "peak_rss": 3637248,
+            "peak_footprint": 2965888
+          },
+          "rust": {
+            "seconds": 0.000770862,
+            "peak_rss": 4161536,
+            "peak_footprint": 3309952
+          }
+        }
+      ],
+      "c_median_seconds": 0.000908495,
+      "rust_median_seconds": 0.000761416,
+      "paired_geomean_ratio": 0.8425693304499249,
+      "ratio_95_percent_ci": [
+        0.8322754342075757,
+        0.8529905454806139
+      ],
+      "peak_rss_ratio": 1.1271186440677967,
+      "runtime_pass": true,
+      "memory_pass": false
+    },
+    {
+      "workload": "embedded",
+      "fixture": "PT_PCM_Internal.aaf",
+      "input_bytes": 371712,
+      "input_sha256": "c58ee8aaac1bda1959e17d5ba5a7c9137f8fe06a39e2b2433f6199ad96a9846a",
+      "mode": "extract",
+      "iterations": 200,
+      "pairs": [
+        {
+          "c": {
+            "seconds": 8.605e-05,
+            "peak_rss": 3080192,
+            "peak_footprint": 2408832
+          },
+          "rust": {
+            "seconds": 5.7703e-05,
+            "peak_rss": 3260416,
+            "peak_footprint": 2408832
+          }
+        },
+        {
+          "rust": {
+            "seconds": 5.0349e-05,
+            "peak_rss": 3194880,
+            "peak_footprint": 2343296
+          },
+          "c": {
+            "seconds": 7.413e-05,
+            "peak_rss": 3031040,
+            "peak_footprint": 2359680
+          }
+        },
+        {
+          "c": {
+            "seconds": 7.662e-05,
+            "peak_rss": 3014656,
+            "peak_footprint": 2343296
+          },
+          "rust": {
+            "seconds": 5.0937e-05,
+            "peak_rss": 3276800,
+            "peak_footprint": 2425216
+          }
+        },
+        {
+          "rust": {
+            "seconds": 5.9292e-05,
+            "peak_rss": 3260416,
+            "peak_footprint": 2408832
+          },
+          "c": {
+            "seconds": 7.113e-05,
+            "peak_rss": 2965504,
+            "peak_footprint": 2294144
+          }
+        },
+        {
+          "c": {
+            "seconds": 7.5115e-05,
+            "peak_rss": 3014656,
+            "peak_footprint": 2343296
+          },
+          "rust": {
+            "seconds": 5.4694e-05,
+            "peak_rss": 3260416,
+            "peak_footprint": 2408832
+          }
+        },
+        {
+          "rust": {
+            "seconds": 5.4387e-05,
+            "peak_rss": 3162112,
+            "peak_footprint": 2310528
+          },
+          "c": {
+            "seconds": 8.566e-05,
+            "peak_rss": 3014656,
+            "peak_footprint": 2343296
+          }
+        },
+        {
+          "c": {
+            "seconds": 7.5405e-05,
+            "peak_rss": 2998272,
+            "peak_footprint": 2326912
+          },
+          "rust": {
+            "seconds": 5.5574e-05,
+            "peak_rss": 3096576,
+            "peak_footprint": 2244992
+          }
+        },
+        {
+          "rust": {
+            "seconds": 5.6504e-05,
+            "peak_rss": 3194880,
+            "peak_footprint": 2343296
+          },
+          "c": {
+            "seconds": 7.3835e-05,
+            "peak_rss": 3047424,
+            "peak_footprint": 2376064
+          }
+        },
+        {
+          "c": {
+            "seconds": 6.975e-05,
+            "peak_rss": 3063808,
+            "peak_footprint": 2392448
+          },
+          "rust": {
+            "seconds": 6.191e-05,
+            "peak_rss": 3194880,
+            "peak_footprint": 2343296
+          }
+        },
+        {
+          "rust": {
+            "seconds": 5.7304e-05,
+            "peak_rss": 3178496,
+            "peak_footprint": 2326912
+          },
+          "c": {
+            "seconds": 7.695e-05,
+            "peak_rss": 3014656,
+            "peak_footprint": 2343296
+          }
+        },
+        {
+          "c": {
+            "seconds": 7.1065e-05,
+            "peak_rss": 3014656,
+            "peak_footprint": 2343296
+          },
+          "rust": {
+            "seconds": 5.7258e-05,
+            "peak_rss": 3194880,
+            "peak_footprint": 2343296
+          }
+        },
+        {
+          "rust": {
+            "seconds": 5.4042e-05,
+            "peak_rss": 3211264,
+            "peak_footprint": 2359680
+          },
+          "c": {
+            "seconds": 7.12e-05,
+            "peak_rss": 3080192,
+            "peak_footprint": 2408832
+          }
+        },
+        {
+          "c": {
+            "seconds": 8.264e-05,
+            "peak_rss": 3047424,
+            "peak_footprint": 2376064
+          },
+          "rust": {
+            "seconds": 6.1211e-05,
+            "peak_rss": 3096576,
+            "peak_footprint": 2244992
+          }
+        },
+        {
+          "rust": {
+            "seconds": 5.8652e-05,
+            "peak_rss": 3178496,
+            "peak_footprint": 2326912
+          },
+          "c": {
+            "seconds": 7.5685e-05,
+            "peak_rss": 3063808,
+            "peak_footprint": 2392448
+          }
+        },
+        {
+          "c": {
+            "seconds": 8.3045e-05,
+            "peak_rss": 3063808,
+            "peak_footprint": 2392448
+          },
+          "rust": {
+            "seconds": 6.0945e-05,
+            "peak_rss": 3260416,
+            "peak_footprint": 2408832
+          }
+        },
+        {
+          "rust": {
+            "seconds": 5.7051e-05,
+            "peak_rss": 3145728,
+            "peak_footprint": 2294144
+          },
+          "c": {
+            "seconds": 7.2825e-05,
+            "peak_rss": 2932736,
+            "peak_footprint": 2261376
+          }
+        },
+        {
+          "c": {
+            "seconds": 6.672e-05,
+            "peak_rss": 2932736,
+            "peak_footprint": 2261376
+          },
+          "rust": {
+            "seconds": 5.127e-05,
+            "peak_rss": 3194880,
+            "peak_footprint": 2343296
+          }
+        },
+        {
+          "rust": {
+            "seconds": 5.5816e-05,
+            "peak_rss": 3145728,
+            "peak_footprint": 2294144
+          },
+          "c": {
+            "seconds": 7.2905e-05,
+            "peak_rss": 3063808,
+            "peak_footprint": 2392448
+          }
+        },
+        {
+          "c": {
+            "seconds": 8.473e-05,
+            "peak_rss": 3063808,
+            "peak_footprint": 2392448
+          },
+          "rust": {
+            "seconds": 5.346e-05,
+            "peak_rss": 3096576,
+            "peak_footprint": 2244992
+          }
+        },
+        {
+          "rust": {
+            "seconds": 4.8129e-05,
+            "peak_rss": 3096576,
+            "peak_footprint": 2244992
+          },
+          "c": {
+            "seconds": 8.3035e-05,
+            "peak_rss": 2998272,
+            "peak_footprint": 2326912
+          }
+        },
+        {
+          "c": {
+            "seconds": 7.8345e-05,
+            "peak_rss": 3112960,
+            "peak_footprint": 2441600
+          },
+          "rust": {
+            "seconds": 5.5166e-05,
+            "peak_rss": 3260416,
+            "peak_footprint": 2408832
+          }
+        }
+      ],
+      "c_median_seconds": 7.5405e-05,
+      "rust_median_seconds": 5.5816e-05,
+      "paired_geomean_ratio": 0.7295253313280126,
+      "ratio_95_percent_ci": [
+        0.6989890885220961,
+        0.7613955894140151
+      ],
+      "peak_rss_ratio": 1.0526315789473684,
+      "runtime_pass": true,
+      "memory_pass": true
+    },
+    {
+      "workload": "large-local",
+      "fixture": "<private local AAF>",
+      "input_bytes": 8050176,
+      "input_sha256": "df6cbb82200354078629921a904514d0a0d36595f5e8ddff339897036610f666",
+      "mode": "parse",
+      "iterations": 10,
+      "pairs": [
+        {
+          "c": {
+            "seconds": 0.2060588,
+            "peak_rss": 16285696,
+            "peak_footprint": 15614336
+          },
+          "rust": {
+            "seconds": 0.020839696,
+            "peak_rss": 14778368,
+            "peak_footprint": 13926784
+          }
+        },
+        {
+          "rust": {
+            "seconds": 0.0206544,
+            "peak_rss": 14614528,
+            "peak_footprint": 13762944
+          },
+          "c": {
+            "seconds": 0.2137468,
+            "peak_rss": 16793600,
+            "peak_footprint": 16138648
+          }
+        },
+        {
+          "c": {
+            "seconds": 0.2062096,
+            "peak_rss": 16334848,
+            "peak_footprint": 15663488
+          },
+          "rust": {
+            "seconds": 0.019402917,
+            "peak_rss": 14483456,
+            "peak_footprint": 13631872
+          }
+        },
+        {
+          "rust": {
+            "seconds": 0.019435921,
+            "peak_rss": 14729216,
+            "peak_footprint": 13877632
+          },
+          "c": {
+            "seconds": 0.1982612,
+            "peak_rss": 16318464,
+            "peak_footprint": 15647104
+          }
+        },
+        {
+          "c": {
+            "seconds": 0.1970763,
+            "peak_rss": 16384000,
+            "peak_footprint": 15712640
+          },
+          "rust": {
+            "seconds": 0.0191623,
+            "peak_rss": 14712832,
+            "peak_footprint": 13861248
+          }
+        },
+        {
+          "rust": {
+            "seconds": 0.019224688,
+            "peak_rss": 14712832,
+            "peak_footprint": 13861248
+          },
+          "c": {
+            "seconds": 0.1992511,
+            "peak_rss": 16236544,
+            "peak_footprint": 15565184
+          }
+        },
+        {
+          "c": {
+            "seconds": 0.2005403,
+            "peak_rss": 16695296,
+            "peak_footprint": 16040344
+          },
+          "rust": {
+            "seconds": 0.019624075,
+            "peak_rss": 14581760,
+            "peak_footprint": 13730176
+          }
+        },
+        {
+          "rust": {
+            "seconds": 0.019243183,
+            "peak_rss": 14467072,
+            "peak_footprint": 13615488
+          },
+          "c": {
+            "seconds": 0.1966795,
+            "peak_rss": 16236544,
+            "peak_footprint": 15565184
+          }
+        },
+        {
+          "c": {
+            "seconds": 0.1966401,
+            "peak_rss": 16285696,
+            "peak_footprint": 15614336
+          },
+          "rust": {
+            "seconds": 0.019292662,
+            "peak_rss": 14565376,
+            "peak_footprint": 13713792
+          }
+        },
+        {
+          "rust": {
+            "seconds": 0.0191495,
+            "peak_rss": 14434304,
+            "peak_footprint": 13582720
+          },
+          "c": {
+            "seconds": 0.1954893,
+            "peak_rss": 16285696,
+            "peak_footprint": 15614336
+          }
+        },
+        {
+          "c": {
+            "seconds": 0.1957496,
+            "peak_rss": 16220160,
+            "peak_footprint": 15548800
+          },
+          "rust": {
+            "seconds": 0.019290717,
+            "peak_rss": 14614528,
+            "peak_footprint": 13762944
+          }
+        },
+        {
+          "rust": {
+            "seconds": 0.019325329,
+            "peak_rss": 14712832,
+            "peak_footprint": 13861248
+          },
+          "c": {
+            "seconds": 0.1971276,
+            "peak_rss": 16285696,
+            "peak_footprint": 15614336
+          }
+        },
+        {
+          "c": {
+            "seconds": 0.1981383,
+            "peak_rss": 16449536,
+            "peak_footprint": 15778176
+          },
+          "rust": {
+            "seconds": 0.019324729,
+            "peak_rss": 14630912,
+            "peak_footprint": 13779328
+          }
+        },
+        {
+          "rust": {
+            "seconds": 0.019495658,
+            "peak_rss": 14712832,
+            "peak_footprint": 13861248
+          },
+          "c": {
+            "seconds": 0.1970988,
+            "peak_rss": 16236544,
+            "peak_footprint": 15565184
+          }
+        },
+        {
+          "c": {
+            "seconds": 0.1977745,
+            "peak_rss": 16465920,
+            "peak_footprint": 15794560
+          },
+          "rust": {
+            "seconds": 0.019509554,
+            "peak_rss": 14696448,
+            "peak_footprint": 13844864
+          }
+        },
+        {
+          "rust": {
+            "seconds": 0.019206121,
+            "peak_rss": 14565376,
+            "peak_footprint": 13713792
+          },
+          "c": {
+            "seconds": 0.1961291,
+            "peak_rss": 16318464,
+            "peak_footprint": 15647104
+          }
+        },
+        {
+          "c": {
+            "seconds": 0.1991691,
+            "peak_rss": 16498688,
+            "peak_footprint": 15827328
+          },
+          "rust": {
+            "seconds": 0.019156992,
+            "peak_rss": 14598144,
+            "peak_footprint": 13746560
+          }
+        },
+        {
+          "rust": {
+            "seconds": 0.019330192,
+            "peak_rss": 14712832,
+            "peak_footprint": 13861248
+          },
+          "c": {
+            "seconds": 0.1953603,
+            "peak_rss": 16236544,
+            "peak_footprint": 15565184
+          }
+        },
+        {
+          "c": {
+            "seconds": 0.1972835,
+            "peak_rss": 16498688,
+            "peak_footprint": 15827328
+          },
+          "rust": {
+            "seconds": 0.019252567,
+            "peak_rss": 14630912,
+            "peak_footprint": 13779328
+          }
+        },
+        {
+          "rust": {
+            "seconds": 0.0191761,
+            "peak_rss": 14598144,
+            "peak_footprint": 13746560
+          },
+          "c": {
+            "seconds": 0.1983935,
+            "peak_rss": 16220160,
+            "peak_footprint": 15548800
+          }
+        },
+        {
+          "c": {
+            "seconds": 0.1987317,
+            "peak_rss": 16285696,
+            "peak_footprint": 15614336
+          },
+          "rust": {
+            "seconds": 0.019526542,
+            "peak_rss": 14630912,
+            "peak_footprint": 13779328
+          }
+        }
+      ],
+      "c_median_seconds": 0.1977745,
+      "rust_median_seconds": 0.019324729,
+      "paired_geomean_ratio": 0.09773406309733852,
+      "ratio_95_percent_ci": [
+        0.09715646314581615,
+        0.09831509690897888
+      ],
+      "peak_rss_ratio": 0.88,
+      "runtime_pass": true,
+      "memory_pass": true
+    }
+  ],
+  "acceptance_pass": false
+}

@@ -1,6 +1,7 @@
 //! AAF metadata dictionary, object arena, and indexed references.
 use crate::{Diagnostic, Error, Rational, Result, Uid, bytes::*, cfb::CompoundFile, defs::*};
 use std::{
+    borrow::Cow,
     collections::{HashMap, HashSet},
     io::Read,
     ops::Range,
@@ -22,36 +23,30 @@ struct PropertyRecord {
     stored_form: u16,
     byte_start: usize,
     reference_start: usize,
-    reference_count: u32,
     byte_len: u16,
 }
 impl PropertyRecord {
-    fn from_words(w: &[u64; 4]) -> Self {
+    fn from_words(w: &[u64; 3]) -> Self {
         Self {
             byte_start: w[0] as usize,
             reference_start: w[1] as usize,
             id: w[2] as u16,
             stored_form: (w[2] >> 16) as u16,
             byte_len: (w[2] >> 32) as u16,
-            reference_count: w[3] as u32,
         }
     }
-    fn words(&self) -> [u64; 4] {
+    fn words(&self) -> [u64; 3] {
         [
             self.byte_start as u64,
             self.reference_start as u64,
             u64::from(self.id)
                 | (u64::from(self.stored_form) << 16)
                 | (u64::from(self.byte_len) << 32),
-            u64::from(self.reference_count),
         ]
     }
 
     fn bytes(&self) -> Range<usize> {
         self.byte_start..self.byte_start + usize::from(self.byte_len)
-    }
-    fn references(&self) -> Range<usize> {
-        self.reference_start..self.reference_start + self.reference_count as usize
     }
 }
 #[derive(Debug)]
@@ -98,7 +93,8 @@ pub struct Object<'a> {
     pub node: u32,
     pub class: Uid,
     pub parent: Option<ObjectId>,
-    properties: &'a [[u64; 4]],
+    properties: &'a [[u64; 3]],
+    reference_end: usize,
     data: &'a [u8],
     references: &'a [ObjectId],
 }
@@ -107,13 +103,18 @@ impl<'a> Object<'a> {
         &self,
     ) -> impl ExactSizeIterator<Item = Property<'a>> + DoubleEndedIterator + 'a {
         let references = self.references;
-        self.properties.iter().map(move |words| {
+        let reference_end = self.reference_end;
+        let properties = self.properties;
+        properties.iter().enumerate().map(move |(index, words)| {
             let p = PropertyRecord::from_words(words);
             Property {
                 id: p.id,
                 stored_form: p.stored_form,
                 bytes: p.bytes(),
-                references: &references[p.references()],
+                references: &references[p.reference_start
+                    ..properties
+                        .get(index + 1)
+                        .map_or(reference_end, |w| w[1] as usize)],
             }
         })
     }
@@ -127,11 +128,15 @@ impl<'a> Object<'a> {
             .map(|w| &self.data[PropertyRecord::from_words(w).bytes()])
     }
     pub fn references(&self, pid: u16) -> &'a [ObjectId] {
-        self.properties
-            .iter()
-            .find(|w| w[2] as u16 == pid)
-            .map(|w| &self.references[PropertyRecord::from_words(w).references()])
-            .unwrap_or(&[])
+        let Some(index) = self.properties.iter().position(|w| w[2] as u16 == pid) else {
+            return &[];
+        };
+        let start = self.properties[index][1] as usize;
+        let end = self
+            .properties
+            .get(index + 1)
+            .map_or(self.reference_end, |w| w[1] as usize);
+        &self.references[start..end]
     }
     pub fn reference(&self, pid: u16) -> Option<ObjectId> {
         self.references(pid).first().copied()
@@ -162,7 +167,7 @@ impl<'a> Object<'a> {
 #[derive(Debug, Clone)]
 pub struct PropertyDefinition {
     pub id: u16,
-    pub name: String,
+    pub name: Cow<'static, str>,
     pub required: bool,
     pub data_type: Uid,
     pub custom: bool,
@@ -179,7 +184,7 @@ pub struct ClassDefinition {
 pub struct Document {
     pub cfb: CompoundFile,
     pub path: Option<PathBuf>,
-    // One allocation contains four-word object records, four-word property
+    // One allocation contains four-word object records, three-word property
     // records, then original bytes padded to a u64 boundary. Records are written
     // only from checked usize/u16/u32 values; no wire bytes are cast to structs.
     metadata: Box<[u64]>,
@@ -197,7 +202,8 @@ pub struct Document {
     pub diagnostics: Vec<Diagnostic>,
     node_objects: Vec<Option<ObjectId>>,
     pub(crate) mobs: HashMap<Vec<u8>, ObjectId>,
-    identifiers: HashMap<(u16, Vec<u8>), ObjectId>,
+    identifiers: HashMap<(u16, [u8; 16]), ObjectId>,
+    wide_identifiers: HashMap<(u16, Box<[u8]>), ObjectId>,
     class_index: HashMap<Uid, usize>,
 }
 impl Document {
@@ -246,7 +252,7 @@ impl Document {
             .checked_mul(4)
             .ok_or_else(|| Error::invalid("object arena size", 0))?;
         let data_words = property_count
-            .checked_mul(4)
+            .checked_mul(3)
             .and_then(|n| n.checked_add(property_words))
             .ok_or_else(|| Error::invalid("property arena size", 0))?;
         let word_count = data_words
@@ -304,8 +310,8 @@ impl Document {
                 let form = u16_at(data, at + 2)?;
                 let len = u16_at(data, at + 4)?;
                 let duplicate = if count <= 16 {
-                    property_records[object.property_start * 4..property_position * 4]
-                        .as_chunks::<4>()
+                    property_records[object.property_start * 3..property_position * 3]
+                        .as_chunks::<3>()
                         .0
                         .iter()
                         .any(|w| w[2] as u16 == pid)
@@ -322,9 +328,8 @@ impl Document {
                     byte_start: offset,
                     byte_len: len,
                     reference_start: 0,
-                    reference_count: 0,
                 };
-                property_records[property_position * 4..property_position * 4 + 4]
+                property_records[property_position * 3..property_position * 3 + 3]
                     .copy_from_slice(&p.words());
                 property_position += 1;
                 offset += usize::from(len);
@@ -337,14 +342,19 @@ impl Document {
         })?;
         let mut diagnostics = Vec::new();
         let mut identifiers = HashMap::new();
+        let mut wide_identifiers = HashMap::new();
         let mut references = Vec::new();
         for object_index in 0..object_count {
             let obj = ObjectRecord::from_words(
                 &metadata[..property_words].as_chunks::<4>().0[object_index],
             );
             for property_index in obj.properties() {
-                let at = property_words + property_index * 4;
-                let mut p = PropertyRecord::from_words(metadata[at..at + 4].try_into().unwrap());
+                let at = property_words + property_index * 3;
+                let mut p = PropertyRecord::from_words(metadata[at..at + 3].try_into().unwrap());
+                // Starts form a monotone prefix index, including empty lists.
+                // The next property's start (or arena length) supplies the end.
+                p.reference_start = references.len();
+                metadata[at..at + 3].copy_from_slice(&p.words());
                 if !matches!(p.stored_form, 0x22 | 0x32 | 0x3a) {
                     continue;
                 }
@@ -394,7 +404,12 @@ impl Document {
                         {
                             references.push(id);
                             if set {
-                                identifiers.insert((pid, b[at + 8..at + 8 + keylen].to_vec()), id);
+                                let key = &b[at + 8..at + 8 + keylen];
+                                if let Ok(uid) = <[u8; 16]>::try_from(key) {
+                                    identifiers.insert((pid, uid), id);
+                                } else {
+                                    wide_identifiers.insert((pid, Box::<[u8]>::from(key)), id);
+                                }
                             }
                         } else {
                             diagnostics.push(Diagnostic {
@@ -407,10 +422,6 @@ impl Document {
                         references[first_reference..].reverse();
                     }
                 }
-                p.reference_start = first_reference;
-                p.reference_count = u32::try_from(references.len() - first_reference)
-                    .map_err(|_| Error::invalid("reference count", obj.node as usize))?;
-                metadata[at..at + 4].copy_from_slice(&p.words());
             }
         }
         let mut doc = Self {
@@ -432,6 +443,7 @@ impl Document {
             node_objects,
             mobs: HashMap::new(),
             identifiers,
+            wide_identifiers,
             class_index: HashMap::new(),
         };
         doc.header = doc.required_ref(root, PID_Root_Header)?;
@@ -487,9 +499,13 @@ impl Document {
         let o = ObjectRecord::from_words(
             &self.metadata[..self.property_words].as_chunks::<4>().0[id.0 as usize],
         );
-        let properties = &self.metadata[self.property_words..self.data_words]
-            .as_chunks::<4>()
-            .0[o.properties()];
+        let all_properties = self.metadata[self.property_words..self.data_words]
+            .as_chunks::<3>()
+            .0;
+        let reference_end = all_properties
+            .get(o.properties().end)
+            .map_or(self.references.len(), |w| w[1] as usize);
+        let properties = &all_properties[o.properties()];
         let raw = bytemuck::cast_slice::<u64, u8>(&self.metadata[self.data_words..]);
         Some(Object {
             id,
@@ -503,6 +519,7 @@ impl Document {
                 .parent
                 .and_then(|node| self.node_objects[node as usize]),
             properties,
+            reference_end,
             data: &raw[o.data],
             references: &self.references,
         })
@@ -517,9 +534,12 @@ impl Document {
     pub fn weak_target(&self, b: &[u8]) -> Option<ObjectId> {
         let pid = u16_at(b, 2).ok()?;
         let len = *b.get(4)? as usize;
-        self.identifiers
-            .get(&(pid, b.get(5..5 + len)?.to_vec()))
-            .copied()
+        let key = b.get(5..5 + len)?;
+        if let Ok(uid) = <[u8; 16]>::try_from(key) {
+            self.identifiers.get(&(pid, uid)).copied()
+        } else {
+            self.wide_identifiers.get(&(pid, key.into())).copied()
+        }
     }
     pub fn weak_uid(&self, id: ObjectId, pid: u16) -> Option<Uid> {
         let b = self.object(id).raw(pid)?;
@@ -550,7 +570,7 @@ impl Document {
                     .iter()
                     .flat_map(|c| &c.properties)
                     .find(|p| p.id == pid)
-                    .map(|p| p.name.clone())
+                    .map(|p| p.name.to_string())
             })
             .unwrap_or_else(|| format!("0x{pid:04x}"))
     }
@@ -647,6 +667,15 @@ impl Document {
                 properties: Vec::new(),
             });
         }
+        let mut counts = vec![0; self.classes.len()];
+        for &(class, _, _) in STANDARD_PROPERTIES {
+            if let Some(&i) = self.class_index.get(&class) {
+                counts[i] += 1;
+            }
+        }
+        for (class, count) in self.classes.iter_mut().zip(counts) {
+            class.properties.reserve_exact(count);
+        }
         for &(class, id, required) in STANDARD_PROPERTIES {
             if let Some(&i) = self.class_index.get(&class) {
                 self.classes[i].properties.push(PropertyDefinition {
@@ -742,7 +771,7 @@ impl Document {
                 }
                 let prop = PropertyDefinition {
                     id: local,
-                    name: o.string(PID_MetaDefinition_Name).unwrap_or_default(),
+                    name: o.string(PID_MetaDefinition_Name).unwrap_or_default().into(),
                     required: o
                         .raw(PID_PropertyDefinition_IsOptional)
                         .is_some_and(|b| b.first() == Some(&0)),
@@ -801,20 +830,55 @@ impl Document {
 mod tests {
     use super::*;
     #[test]
+    fn reference_prefixes_handle_empty_and_terminal_lists() {
+        let records = [(1, 0), (2, 0), (3, 2), (4, 2)].map(|(id, reference_start)| {
+            PropertyRecord {
+                id,
+                stored_form: 0x32,
+                byte_start: 0,
+                byte_len: 0,
+                reference_start,
+            }
+            .words()
+        });
+        let references = [ObjectId(4), ObjectId(8), ObjectId(12)];
+        let object = Object {
+            id: ObjectId(0),
+            node: 0,
+            class: Uid::default(),
+            parent: None,
+            properties: &records,
+            reference_end: references.len(),
+            data: &[],
+            references: &references,
+        };
+        assert_eq!(object.references(1), &[]);
+        assert_eq!(object.references(2), &[ObjectId(4), ObjectId(8)]);
+        assert_eq!(object.references(3), &[]);
+        assert_eq!(object.references(4), &[ObjectId(12)]);
+        assert_eq!(object.references(5), &[]);
+        let reversed: Vec<_> = object
+            .properties()
+            .rev()
+            .map(|p| p.references.len())
+            .collect();
+        assert_eq!(reversed, [1, 0, 2, 0]);
+    }
+
+    #[test]
     fn packed_metadata_preserves_full_field_widths() {
         let property = PropertyRecord {
             id: u16::MAX,
             stored_form: u16::MAX - 1,
             byte_start: usize::MAX / 2,
             byte_len: u16::MAX,
-            reference_start: 0,
-            reference_count: u32::MAX,
+            reference_start: usize::MAX,
         };
         let decoded = PropertyRecord::from_words(&property.words());
         assert_eq!(decoded.id, u16::MAX);
         assert_eq!(decoded.stored_form, u16::MAX - 1);
         assert_eq!(decoded.bytes(), property.bytes());
-        assert_eq!(decoded.references(), 0..u32::MAX as usize);
+        assert_eq!(decoded.reference_start, usize::MAX);
         let object = ObjectRecord {
             data: usize::MAX / 2..usize::MAX / 2 + 17,
             property_start: 0,

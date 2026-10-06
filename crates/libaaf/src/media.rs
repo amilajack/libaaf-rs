@@ -20,7 +20,19 @@ pub struct AudioInfo {
     pub big_endian: bool,
 }
 pub fn audio_info(bytes: &[u8]) -> Result<AudioInfo> {
-    parse_info(|at, len| Ok(slice(bytes, at as usize, len)?.to_vec()))
+    parse_info(|at, len| {
+        let at = usize::try_from(at).map_err(|_| Error::invalid("media offset", usize::MAX))?;
+        Ok(slice(bytes, at, len)?.to_vec())
+    })
+}
+/// Inspect container headers with bounded range reads, including large metadata chunks.
+pub fn audio_info_stream(stream: &crate::cfb::Stream<'_>) -> Result<AudioInfo> {
+    parse_info(|at, len| {
+        let at = usize::try_from(at).map_err(|_| Error::invalid("media offset", usize::MAX))?;
+        let mut bytes = Vec::with_capacity(len);
+        stream.copy_range(at, len, &mut bytes)?;
+        Ok(bytes)
+    })
 }
 pub fn audio_info_file(path: &Path) -> Result<AudioInfo> {
     let mut file = File::open(path)?;
@@ -209,7 +221,14 @@ pub(crate) fn resolve_all(doc: &Document, c: &mut Composition) -> Result<()> {
         {
             e.usable_path = resolve_media(path, base, common.as_deref())?;
         }
+        let descriptor = doc.object(e.descriptor);
+        let complete_summary = descriptor
+            .raw(PID_WAVEDescriptor_Summary)
+            .or_else(|| descriptor.raw(PID_AIFCDescriptor_Summary))
+            .and_then(|bytes| audio_info(bytes).ok())
+            .is_some_and(|info| info.frames > 0);
         if let Some(path) = &e.usable_path
+            && !complete_summary
             && let Ok(info) = audio_info_file(path)
         {
             e.channels = info.channels;
@@ -360,6 +379,20 @@ fn prepare_extraction<'a>(
         .ok_or_else(|| Error::invalid("media offset", 0))?;
     if start > stream.size as u64 {
         return Err(Error::invalid("media offset", start as usize));
+    }
+    // The pinned extractor compares requested bytes plus the absolute source
+    // offset against payload size (already excluding the header). Preserve its
+    // conservative rejection at the tail of header-bearing media, using checked
+    // arithmetic instead of the C implementation's unsigned wraparound.
+    let payload_size = (stream.size as u64)
+        .checked_sub(e.data_offset)
+        .ok_or_else(|| Error::invalid("media header offset", start as usize))?;
+    let requested_end = length
+        .unwrap_or(0)
+        .checked_add(start)
+        .ok_or_else(|| Error::invalid("media range", start as usize))?;
+    if requested_end > payload_size {
+        return Err(Error::invalid("reference extraction range", start as usize));
     }
     let len = length.unwrap_or(stream.size as u64 - start);
     if start

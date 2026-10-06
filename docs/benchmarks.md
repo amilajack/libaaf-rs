@@ -105,3 +105,18 @@ Object records, property records, and original property bytes now share one alig
 | embedded | extract | 0.816 | 0.778–0.857 | 1.096 |
 
 All runtime gates pass in this run. Embedded extraction also passes the memory gate; the four parsing workloads still exceed it. Full performance acceptance remains incomplete.
+
+## Library parity and larger workload follow-up
+
+The 4 KiB native cache, compact reference prefixes, inline 16-byte identifier keys, borrowed standard property names, and summary-first media inspection use the default optimized release profile. Twenty-one paired batches measured the upstream workloads at 200 iterations and a private 8,050,176-byte session at 10 iterations. The report contains only its size/checksum, not its path, name, or contents. Raw measurements: [benchmark-library-parity.json](benchmark-library-parity.json).
+
+| Workload | Mode | Runtime ratio | 95% ratio interval | Peak RSS ratio |
+|---|---|---:|---:|---:|
+| small | parse | 0.896 | 0.873–0.918 | 1.136 |
+| large | parse | 0.736 | 0.728–0.745 | 1.176 |
+| multichannel | parse | 0.985 | 0.962–1.007 | 1.146 |
+| embedded | parse | 0.843 | 0.832–0.853 | 1.127 |
+| embedded | extract | 0.730 | 0.699–0.761 | 1.053 |
+| large-local | parse | 0.098 | 0.097–0.098 | 0.880 |
+
+Every runtime gate passes. Extraction and the large local session pass memory; the four upstream parsing workloads still exceed the +10% memory gate. Normal desktop activity continued, so this remains diagnostic rather than final controlled acceptance.

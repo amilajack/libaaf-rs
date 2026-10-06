@@ -2,7 +2,7 @@
 
 Native Rust AAF reading, timeline inspection, and embedded audio extraction, with WebAssembly bindings and a local import test app. Based on [LibAAF](https://github.com/agfline/LibAAF) at `7925dff4026be06b4edfacdfe458887c2d6503ca`; GPL-2.0-or-later. Production code runs entirely in Rust. The C submodule is a development reference and supplies the complete upstream fixtures.
 
-**Port acceptance is still in progress.** The main analysis output passes all upstream fixtures and 455 differential cases. Peak memory exceeds the requested C +10% gate, and complete debugging-output compatibility needs further work. See [the feature checklist](docs/features.md) and [measured benchmarks](docs/benchmarks.md).
+**Port acceptance is still in progress.** The main analysis output passes all upstream fixtures and 455 differential cases. Peak memory exceeds the requested C +10% gate, while CLI presentation parity is outside the current scope. See [the feature checklist](docs/features.md) and [measured benchmarks](docs/benchmarks.md).
 
 ## Browser import app
 
@@ -93,7 +93,7 @@ No crates.io publication or public release is configured.
 
 ### File-backed reader API changes
 
-`CompoundFile::sector` returns `Cow<[u8]>`. `Stream::to_vec` and `prefix` now return `Result<Vec<u8>>`; propagate failures with `?`. `chunks` yields fallible `Cow<[u8]>` values in bounded pieces. Use `reader` or `copy_to` for streaming extraction. `CompoundFile::nodes.get()` and `.iter()` return borrowed node views; `Node::name` borrows from a shared name buffer. Metadata records and original bytes share document-owned arrays. Use `document.objects()` and `object.properties()` to iterate borrowed views; `object`, `get_object`, and `property` return views by value. `Property::references` is a borrowed slice. Views and their raw bytes cannot outlive the document. Stable IDs and the wasm JSON interface are unchanged. Native files must remain unchanged while open; `Document::from_bytes` retains snapshot semantics.
+`CompoundFile::sector` returns `Cow<[u8]>`. `Stream::to_vec` and `prefix` now return `Result<Vec<u8>>`; propagate failures with `?`. `chunks` yields fallible `Cow<[u8]>` values in bounded pieces. Use `reader` or `copy_to` for streaming extraction. `CompoundFile::nodes.get()` and `.iter()` return borrowed node views; `Node::name` borrows from a shared name buffer. Metadata records and original bytes share document-owned arrays. Use `document.objects()` and `object.properties()` to iterate borrowed views; `object`, `get_object`, and `property` return views by value. `Property::references` is a borrowed slice. `PropertyDefinition::name` is `Cow<'static, str>`; use `.as_ref()` for a string slice or `.into_owned()` when ownership is needed. Views and their raw bytes cannot outlive the document. Stable IDs and the wasm JSON interface are unchanged. Native files must remain unchanged while open; `Document::from_bytes` retains snapshot semantics.
 
 ### Required local verification hooks
 

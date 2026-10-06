@@ -558,7 +558,13 @@ impl Parser<'_> {
                     .object(op)
                     .references(PID_OperationGroup_Parameters)
                 {
-                    if let Some(c) = self.curve(pid) {
+                    let parameter = self.doc.object(pid);
+                    if self.doc.weak_uid(op, PID_OperationGroup_Operation)
+                        == Some(AAFOperationDef_MonoAudioDissolve)
+                        && parameter.class == AAFClassID_VaryingValue
+                        && parameter.uid(PID_Parameter_Definition) == Some(AAFParameterDef_Level)
+                        && let Some(c) = self.curve(pid)
+                    {
                         interpolation = c.interpolation;
                     }
                 }
@@ -696,11 +702,12 @@ impl Parser<'_> {
             };
             if op == Some(AAFOperationDef_MonoAudioGain) {
                 if def != Some(AAFParameterDef_Amplitude)
-                    && !self.doc.objects().any(|o| {
-                        o.uid(PID_DefinitionObject_Identification) == def
-                            && o.string(PID_DefinitionObject_Name).as_deref()
-                                == Some("AvidControlClipRatio")
-                    })
+                    && (o.class != AAFClassID_VaryingValue
+                        || !self.doc.objects().any(|o| {
+                            o.uid(PID_DefinitionObject_Identification) == def
+                                && o.string(PID_DefinitionObject_Name).as_deref()
+                                    == Some("AvidControlClipRatio")
+                        }))
                 {
                     continue;
                 }
@@ -721,6 +728,7 @@ impl Parser<'_> {
             } else if op == Some(AAFOperationDef_MonoAudioPan)
                 && def == Some(AAFParameterDef_Pan)
                 && affect_track
+                && (o.class == AAFClassID_ConstantValue || track.pan.is_none())
             {
                 track.pan = Some(curve);
             }
@@ -967,11 +975,13 @@ impl Parser<'_> {
         if format == EssenceFormat::Pcm {
             e.sample_rate = e.edit_rate.as_f64() as u32;
         }
+        let mut complete_summary = false;
         if let Some(b) = desc
             .raw(PID_WAVEDescriptor_Summary)
             .or_else(|| desc.raw(PID_AIFCDescriptor_Summary))
             && let Ok(info) = crate::media::audio_info(b)
         {
+            complete_summary = info.frames > 0;
             e.channels = info.channels;
             e.sample_rate = info.sample_rate;
             e.sample_size = info.sample_size;
@@ -980,10 +990,13 @@ impl Parser<'_> {
             e.edit_rate = Rational::new(info.sample_rate as i32, 1);
         }
         if matches!(format, EssenceFormat::Wave | EssenceFormat::Aiff)
+            && !complete_summary
+            && (desc.raw(PID_WAVEDescriptor_Summary).is_some()
+                || desc.raw(PID_AIFCDescriptor_Summary).is_some())
             && let Some(node) = embedded_node
         {
             let stream = doc.cfb.stream(node)?;
-            if let Ok(info) = crate::media::audio_info(&stream.prefix(65536)?) {
+            if let Ok(info) = crate::media::audio_info_stream(&stream) {
                 e.channels = info.channels;
                 e.sample_rate = info.sample_rate;
                 e.sample_size = info.sample_size;
