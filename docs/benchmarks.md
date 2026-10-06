@@ -59,3 +59,7 @@ The `f3445af` build removes duplicated directory names from the index and reserv
 | multichannel | parse | 0.986 | 0.973–0.998 | 1.282 |
 | embedded | parse | 0.640 | 0.605–0.677 | 1.445 |
 | embedded | extract | 0.787 | 0.700–0.884 | 1.246 |
+
+## Larger local session diagnostic
+
+Three alternating pairs of 20 parses of an 8,050,176-byte Downloads AAF measured C at 210–242 ms and Rust at 21.6–23.4 ms per parse. Maximum observed process RSS was 16,596,992 bytes in C versus 32,768,000 bytes in Rust (1.97×). This short diagnostic is not a designated acceptance run, but confirms that the memory gap persists on a larger real session. No private input file or filename is included in this report.

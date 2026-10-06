@@ -81,6 +81,12 @@ node web/tests/downloads.mjs /path/to/Downloads
 
 These commands do not copy input files into the repository. Reports go to ignored `tooling/results`. Five AAF files nested in Downloads passed native comparisons and wasm track/clip count checks on this Mac; 768 tracks and 1,752 clips in total. The originals' SHA-256 checksums were unchanged.
 
-Fuzz targets are in `fuzz/`. Run with cargo-fuzz on a nightly development toolchain, for example `cargo +nightly fuzz run document tooling/reference/test/aaf -- -max_total_time=300`. Nightly is used only by fuzz tooling, never by production crates.
+Fuzz targets are in `fuzz/`. Run with cargo-fuzz on a nightly development toolchain, using an ignored writable corpus and the pinned fixtures as read-only seeds:
+
+```sh
+mkdir -p fuzz/corpus/document
+cargo +nightly fuzz run document fuzz/corpus/document tooling/reference/test/aaf -- -max_total_time=300
+```
+ Nightly is used only by fuzz tooling, never by production crates.
 
 No crates.io publication or public release is configured.
