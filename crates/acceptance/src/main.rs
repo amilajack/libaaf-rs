@@ -85,6 +85,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
         _ => return Err("unknown benchmark mode".into()),
     };
-    println!("{:.9}", elapsed.as_secs_f64() / iterations as f64);
+    // Emit integer nanoseconds so result formatting does not load floating-point
+    // formatting code into the process whose peak memory is being measured.
+    println!("{}", elapsed.as_nanos() / iterations as u128);
     Ok(())
 }

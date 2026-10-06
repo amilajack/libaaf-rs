@@ -120,3 +120,5 @@ The 4 KiB native cache, compact reference prefixes, inline 16-byte identifier ke
 | large-local | parse | 0.098 | 0.097–0.098 | 0.880 |
 
 Every runtime gate passes. Extraction and the large local session pass memory; the four upstream parsing workloads still exceed the +10% memory gate. Normal desktop activity continued, so this remains diagnostic rather than final controlled acceptance.
+
+Both benchmark executables now report integer nanoseconds per operation; the driver converts these to seconds. This avoids loading floating-point result-formatting code into the processes whose peak RSS is measured. The timed library work and raw process RSS measurement are unchanged; no baseline is subtracted. A five-pair diagnostic run still failed the overall memory gate.

@@ -49,3 +49,5 @@ Version-controlled pre-commit hooks invoke the canonical CI suite without rewrit
 - Shared reference lists use monotone starts instead of redundant counts. Standard dictionary property names borrow static strings, and 16-byte reference identifiers are stored inline. Raw unknown properties remain intact.
 
 The follow-up AddressSanitizer document/ProTools/inspection campaign completed 62,719 executions in 61 seconds without a crash. The rebuilt wasm module again passed all five Downloads sessions.
+
+The reference CMake build explicitly pins `LIBAAF_VERSION=v1.0-30-g7925dff`. GitHub submodule checkouts can lack historical tags, which otherwise embeds `v0.0.0-unknown` in generated BWAV metadata. The one-frame AIFF Linux CI mismatch was reproduced exactly by changing only that 32-byte version field (SHA-256 `fd8614c3123b0ed0b60ad6a360be9b10c39458cdf9a04a80e81468f4abb6ceca`). Pinning the reference version preserves exact-byte comparisons without normalizing output.

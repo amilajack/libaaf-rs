@@ -12,7 +12,7 @@ if a.large_file:
 def cmd(*args):return subprocess.check_output(args,text=True).strip()
 def measure(exe,mode,file,out):
  r=subprocess.run(['/usr/bin/time','-l',str(exe),mode,str(file),str(iterations),str(out)],capture_output=True,text=True,check=True)
- return {'seconds':float(r.stdout.strip()),'peak_rss':int(re.search(r'(\d+)\s+maximum resident set size',r.stderr)[1]),'peak_footprint':int(re.search(r'(\d+)\s+peak memory footprint',r.stderr)[1])}
+ return {'seconds':int(r.stdout.strip())/1e9,'peak_rss':int(re.search(r'(\d+)\s+maximum resident set size',r.stderr)[1]),'peak_footprint':int(re.search(r'(\d+)\s+peak memory footprint',r.stderr)[1])}
 results=[];bins={'c':ROOT/'tooling/reference-build/benchmark','rust':ROOT/'target/release/libaaf-acceptance'}
 with tempfile.TemporaryDirectory(prefix='libaaf-bench-')as tmp:
  output=pathlib.Path(tmp)

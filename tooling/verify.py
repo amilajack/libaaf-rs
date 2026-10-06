@@ -36,7 +36,7 @@ def main():
         run('cargo', 'doc', '--workspace', '--no-deps', '--locked', env={**os.environ, 'RUSTDOCFLAGS': '-D warnings'})
     if args.suite in ('reference-and-wasm', 'all'):
         run('cargo', 'build', '--release', '--locked', '-p', 'aaftool', '-p', 'libaaf-acceptance')
-        run('cmake', '-S', 'tooling/reference', '-B', 'tooling/reference-build', '-DCMAKE_BUILD_TYPE=Release', '-DBUILD_DOC=OFF', '-DBUILD_UNIT_TEST=OFF', '-DBUILD_SHARED_LIB=OFF', '-DBUILD_STATIC_LIB=ON')
+        run('cmake', '-S', 'tooling/reference', '-B', 'tooling/reference-build', '-DCMAKE_BUILD_TYPE=Release', '-DLIBAAF_VERSION=v1.0-30-g7925dff', '-DBUILD_DOC=OFF', '-DBUILD_UNIT_TEST=OFF', '-DBUILD_SHARED_LIB=OFF', '-DBUILD_STATIC_LIB=ON')
         run('cmake', '--build', 'tooling/reference-build', '--parallel', '2')
         for script in ('differential', 'cli_differential', 'upstream_tests', 'build_reference_tools', 'inspect_differential', 'extraction_differential', 'graph_differential'):
             run('python3', f'tooling/{script}.py')
