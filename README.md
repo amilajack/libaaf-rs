@@ -93,7 +93,7 @@ No crates.io publication or public release is configured.
 
 ### File-backed reader API changes
 
-`CompoundFile::sector` returns `Cow<[u8]>`. `Stream::to_vec` and `prefix` now return `Result<Vec<u8>>`; propagate failures with `?`. `chunks` yields fallible `Cow<[u8]>` values in bounded pieces. Use `reader` or `copy_to` for streaming extraction. `Node::name`, `Object::properties`, and `Property::references` use boxed immutable storage; ordinary indexing, iteration, and borrowed access are unchanged. Convert with `into()` when constructing these fields. Native files must remain unchanged while open; `Document::from_bytes` retains snapshot semantics.
+`CompoundFile::sector` returns `Cow<[u8]>`. `Stream::to_vec` and `prefix` now return `Result<Vec<u8>>`; propagate failures with `?`. `chunks` yields fallible `Cow<[u8]>` values in bounded pieces. Use `reader` or `copy_to` for streaming extraction. `CompoundFile::nodes.get()` and `.iter()` return borrowed node views; `Node::name` borrows from a shared name buffer. Metadata records and original bytes share document-owned arrays. Use `document.objects()` and `object.properties()` to iterate borrowed views; `object`, `get_object`, and `property` return views by value. `Property::references` is a borrowed slice. Views and their raw bytes cannot outlive the document. Stable IDs and the wasm JSON interface are unchanged. Native files must remain unchanged while open; `Document::from_bytes` retains snapshot semantics.
 
 ### Required local verification hooks
 

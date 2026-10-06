@@ -20,13 +20,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let elapsed = match args[1].as_str() {
         "inspect" => {
             let d = Document::open(&args[2], ReaderOptions::default())?;
-            for o in &d.objects {
+            for o in d.objects() {
                 print!("O\t{}\t", o.node);
                 for b in o.class.0 {
                     print!("{b:02x}");
                 }
                 println!();
-                for p in &o.properties {
+                for p in o.properties() {
                     print!("P\t{}\t{:04x}\t{:04x}\t", o.node, p.id, p.stored_form);
                     for b in o.raw(p.id).unwrap_or_default() {
                         print!("{b:02x}");

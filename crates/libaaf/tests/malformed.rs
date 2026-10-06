@@ -140,8 +140,8 @@ fn unicode_paths_missing_media_and_unknown_properties() {
     let d = Document::from_bytes(fixture(), ReaderOptions::default()).unwrap();
     let h = d.object(d.header);
     assert_eq!(h.raw(PID_Header_ByteOrder), Some(&[0x49, 0x49][..]));
-    for o in &d.objects {
-        for p in &o.properties {
+    for o in d.objects() {
+        for p in o.properties() {
             assert_eq!(o.raw(p.id).unwrap().len(), p.bytes.len());
         }
     }
@@ -161,8 +161,7 @@ fn retain_unknown_properties_and_detect_source_cycles() {
     let at = property_stream_offset(&d, d.header, &b);
     let h = d.object(d.header);
     let index = h
-        .properties
-        .iter()
+        .properties()
         .position(|p| p.id == PID_Header_LastModified)
         .unwrap();
     let expected = h.raw(PID_Header_LastModified).unwrap().to_vec();
@@ -228,4 +227,25 @@ fn malformed_files_match_owned_input_rejection() {
         assert!(Document::from_bytes(data, ReaderOptions::default()).is_err());
         assert!(Document::open(&path, ReaderOptions::default()).is_err());
     }
+}
+
+#[test]
+fn reject_oversized_property_stream_before_allocating_arena() {
+    let mut bytes = fixture();
+    let cfb = CompoundFile::from_bytes(bytes.clone()).unwrap();
+    let node = cfb.child(0, "properties").unwrap() as usize;
+    let per_sector = cfb.header.sector_size / 128;
+    let mut sector = cfb.header.first_directory;
+    for _ in 0..node / per_sector {
+        sector = cfb.fat[sector as usize];
+    }
+    let offset = (sector as usize + 1) * cfb.header.sector_size + (node % per_sector) * 128 + 120;
+    bytes[offset..offset + 8].copy_from_slice(&u64::MAX.to_le_bytes());
+    assert!(matches!(
+        Document::from_bytes(bytes, ReaderOptions::default()),
+        Err(libaaf::Error::Invalid {
+            context: "metadata stream sizes",
+            ..
+        })
+    ));
 }

@@ -91,3 +91,17 @@ The directory decoder now processes one sector at a time instead of retaining a 
 | embedded | extract | 0.896 | 0.841–0.955 | 1.150 |
 
 Before the streamed-directory follow-up, three alternating pairs on the 8,050,176-byte Downloads session measured Rust at 21.3–25.1 ms per parse and peak RSS 25,575,424 bytes, versus C at 197–220 ms and peak RSS 16,564,224 bytes. Rust peak RSS fell from the prior 32,768,000-byte observation, but remained over the acceptance limit. These private-input diagnostics retain neither the source file nor its filename in Git.
+
+## Shared metadata follow-up
+
+Object records, property records, and original property bytes now share one aligned allocation. Directory names share one buffer, and contiguous streams avoid allocating sector/range vectors. Public native object/property/node access returns borrowed views; the wasm interface is unchanged. Twenty-one alternating pairs of 200 operations produced the following diagnostic results. Normal desktop activity continued; these are not controlled final acceptance measurements. Raw data: [benchmark-shared-metadata.json](benchmark-shared-metadata.json).
+
+| Workload | Mode | Runtime ratio | 95% ratio interval | Peak RSS ratio |
+|---|---|---:|---:|---:|
+| small | parse | 0.904 | 0.865–0.946 | 1.178 |
+| large | parse | 0.543 | 0.535–0.550 | 1.201 |
+| multichannel | parse | 0.885 | 0.828–0.946 | 1.234 |
+| embedded | parse | 0.672 | 0.656–0.689 | 1.170 |
+| embedded | extract | 0.816 | 0.778–0.857 | 1.096 |
+
+All runtime gates pass in this run. Embedded extraction also passes the memory gate; the four parsing workloads still exceed it. Full performance acceptance remains incomplete.

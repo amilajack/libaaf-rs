@@ -181,9 +181,16 @@ fn run() -> Result<(), String> {
     if let Some(path) = val("cfb-node") {
         if let Some(id) = doc.cfb.node_by_path(path) {
             s += &inspection::node(&doc.cfb, id);
-            if doc.cfb.nodes[id as usize].kind == 2 {
+            if doc.cfb.nodes.get(id as usize).unwrap().kind == 2 {
                 let stream = doc.cfb.stream(id).map_err(|e| e.to_string())?;
-                if doc.cfb.nodes[id as usize].name.starts_with("properties") {
+                if doc
+                    .cfb
+                    .nodes
+                    .get(id as usize)
+                    .unwrap()
+                    .name
+                    .starts_with("properties")
+                {
                     s += &inspection::raw_properties(
                         &doc,
                         &stream.to_vec().map_err(|e| e.to_string())?,
@@ -236,7 +243,7 @@ fn run() -> Result<(), String> {
         || has("dump-class")
         || has("dump-class-raw")
     {
-        for o in &doc.objects {
+        for o in doc.objects() {
             let name = doc.class_name(o.class);
             let selected = has("aaf-properties")
                 || val("dump-class") == Some(name.as_str())
@@ -264,7 +271,7 @@ fn run() -> Result<(), String> {
                 .map_err(|e| e.to_string())?;
             }
             if has("dump-meta") {
-                for p in &o.properties {
+                for p in o.properties() {
                     if doc
                         .classes
                         .iter()
@@ -277,7 +284,7 @@ fn run() -> Result<(), String> {
                 }
             }
             if has("dump-tagged-value") {
-                for p in &o.properties {
+                for p in o.properties() {
                     for (n, v) in doc.tagged(o.id, p.id) {
                         s += &format!(" Tagged > Name: {n}      Value: {v}\n");
                     }

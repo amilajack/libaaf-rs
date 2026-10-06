@@ -66,7 +66,7 @@ impl AafDocument {
         let c = &self.composition;
         let d = &self.document;
         let producer=d.identification.map(|id|{let o=d.object(id);json!({"company":o.string(PID_Identification_CompanyName),"product":o.string(PID_Identification_ProductName),"version":o.string(PID_Identification_ProductVersionString)})});
-        let value = json!({"name":c.name,"producer":producer,"objectCount":d.objects.len(),"classCount":d.classes.len(),"sampleRate":c.sample_rate,"sampleSize":c.sample_size,"length":c.length,"lengthRate":c.length_rate.map(rational),"metadata":c.metadata,
+        let value = json!({"name":c.name,"producer":producer,"objectCount":d.objects().len(),"classCount":d.classes.len(),"sampleRate":c.sample_rate,"sampleSize":c.sample_size,"length":c.length,"lengthRate":c.length_rate.map(rational),"metadata":c.metadata,
             "timecode":{"start":c.timecode.start,"fps":c.timecode.fps,"drop":c.timecode.drop,"editRate":rational(c.timecode.edit_rate)},
             "tracks":c.tracks.iter().map(|t|json!({"number":t.number,"name":t.name,"video":t.video,"channels":t.channels,"editRate":rational(t.edit_rate),"length":t.length,"solo":t.solo,"mute":t.mute,"gain":curve(&t.gain),"pan":curve(&t.pan),"items":t.items.iter().map(|i|match i{Item::Clip(c)=>clip(c),Item::Transition(t)=>json!({"kind":"transition","length":t.length,"cutPoint":t.cut_point,"fade":format!("{:?}",t.kind),"interpolation":format!("{:?}",t.interpolation),"curve":curve(&Some(t.level_curve()))})}).collect::<Vec<_>>() })).collect::<Vec<_>>(),
             "essences":c.essences.iter().enumerate().map(|(i,e)|json!({"id":i,"name":e.name,"uniqueName":e.unique_name,"format":format!("{:?}",e.format),"channels":e.channels,"sampleRate":e.sample_rate,"sampleSize":e.sample_size,"length":e.length,"embedded":e.embedded_node.is_some(),"originalPath":e.original_path,"metadata":e.metadata,"sourceMob":e.source_mob.0})).collect::<Vec<_>>(),
@@ -76,14 +76,14 @@ impl AafDocument {
         serde_json::to_string(&value).map_err(js_error)
     }
     pub fn objects(&self) -> Result<String, JsValue> {
-        serde_json::to_string(&self.document.objects.iter().map(|o|json!({"id":o.id.0,"class":self.document.class_name(o.class),"path":self.document.cfb.path(o.node),"properties":o.properties.len()})).collect::<Vec<_>>()).map_err(js_error)
+        serde_json::to_string(&self.document.objects().map(|o|json!({"id":o.id.0,"class":self.document.class_name(o.class),"path":self.document.cfb.path(o.node),"properties":o.properties().len()})).collect::<Vec<_>>()).map_err(js_error)
     }
     pub fn object(&self, id: u32) -> Result<String, JsValue> {
         let d = &self.document;
         let o = d
             .get_object(ObjectId(id))
             .ok_or_else(|| js_error("invalid object ID"))?;
-        serde_json::to_string(&json!({"id":id,"class":d.class_name(o.class),"properties":o.properties.iter().map(|p|json!({"id":p.id,"name":d.property_name(p.id),"storedForm":p.stored_form,"bytes":o.raw(p.id),"references":p.references.iter().map(|id|id.0).collect::<Vec<_>>()})).collect::<Vec<_>>() })).map_err(js_error)
+        serde_json::to_string(&json!({"id":id,"class":d.class_name(o.class),"properties":o.properties().map(|p|json!({"id":p.id,"name":d.property_name(p.id),"storedForm":p.stored_form,"bytes":o.raw(p.id),"references":p.references.iter().map(|id|id.0).collect::<Vec<_>>()})).collect::<Vec<_>>() })).map_err(js_error)
     }
     pub fn extract_essence(&self, index: u32, format: &str) -> Result<Vec<u8>, JsValue> {
         let format = match format {

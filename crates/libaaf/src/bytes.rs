@@ -20,17 +20,24 @@ pub(crate) fn utf16(b: &[u8]) -> Result<String> {
     if !b.len().is_multiple_of(2) {
         return Err(Error::invalid("UTF-16 length", 0));
     }
+    let mut result = String::with_capacity(b.len() / 2);
+    append_utf16(b, &mut result)?;
+    Ok(result)
+}
+pub(crate) fn append_utf16(b: &[u8], result: &mut String) -> Result<()> {
+    if !b.len().is_multiple_of(2) {
+        return Err(Error::invalid("UTF-16 length", 0));
+    }
     let words = b
         .as_chunks::<2>()
         .0
         .iter()
-        .map(|v| u16::from_le_bytes([v[0], v[1]]))
+        .map(|v| u16::from_le_bytes(*v))
         .take_while(|v| *v != 0);
-    let mut result = String::with_capacity(b.len() / 2);
     for ch in char::decode_utf16(words) {
         result.push(ch.map_err(|_| Error::invalid("UTF-16 encoding", 0))?);
     }
-    Ok(result)
+    Ok(())
 }
 
 #[cfg(test)]

@@ -696,7 +696,7 @@ impl Parser<'_> {
             };
             if op == Some(AAFOperationDef_MonoAudioGain) {
                 if def != Some(AAFParameterDef_Amplitude)
-                    && !self.doc.objects.iter().any(|o| {
+                    && !self.doc.objects().any(|o| {
                         o.uid(PID_DefinitionObject_Identification) == def
                             && o.string(PID_DefinitionObject_Name).as_deref()
                                 == Some("AvidControlClipRatio")

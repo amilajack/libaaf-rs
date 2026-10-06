@@ -31,3 +31,11 @@ These short campaigns supplement the regression tests; they are not evidence tha
 cargo +nightly-2026-09-01 fuzz run document fuzz/corpus/document -- -max_total_time=60 -max_len=1048576 -timeout=5
 cargo +nightly-2026-09-01 fuzz run media fuzz/corpus/media -- -max_total_time=60 -max_len=1048576 -timeout=5
 ```
+
+## Shared metadata storage verification
+
+The shared metadata arena, pooled directory names, and allocation-free contiguous stream descriptors pass the canonical `python3 tooling/verify.py all` suite. Added regression tests reject oversized metadata before allocation and preserve the full width of packed record fields. The native API exposes borrowed object/property/node views; the wasm JSON interface is unchanged.
+
+The rebuilt wasm package and native CLI both pass all five recursively discovered Downloads AAFs (768 tracks, 1,752 clips), with input hashes unchanged. Chrome also rendered the embedded-audio example using this build. A fresh AddressSanitizer document/ProTools/inspection campaign completed 50,612 executions in 61 seconds without a crash.
+
+Version-controlled pre-commit hooks invoke the canonical CI suite without rewriting files. The hook is installed locally, and an intentionally unformatted staged change was rejected before a commit could be created.

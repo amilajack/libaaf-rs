@@ -709,7 +709,7 @@ pub fn clips(c: &Composition, o: &DisplayOptions) -> String {
 pub fn object_properties(doc: &Document, id: ObjectId) -> String {
     let o = doc.object(id);
     let mut s = String::new();
-    for p in o.properties.iter().rev() {
+    for p in o.properties().rev() {
         writeln!(
             s,
             " [0x{:04x}] {} ({})",
@@ -719,7 +719,7 @@ pub fn object_properties(doc: &Document, id: ObjectId) -> String {
         )
         .unwrap();
         s.push_str(&hex(o.raw(p.id).unwrap_or(&[]), " "));
-        for &target in &p.references {
+        for &target in p.references {
             let target = doc.object(target);
             writeln!(
                 s,
@@ -871,7 +871,7 @@ pub fn nodes(c: &crate::cfb::CompoundFile) -> String {
     let mut i = 0;
     let w = width(c.nodes.len());
     while let Some(id) = stack.pop() {
-        let n = &c.nodes[id as usize];
+        let n = &c.nodes.get(id as usize).unwrap();
         writeln!(s, " {i:0w$} : (null){}", c.path(id)).unwrap();
         i += 1;
         for v in [n.right, n.left, n.child] {

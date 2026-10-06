@@ -11,7 +11,7 @@ fn decode_complete_fixture_suite() {
         if path.extension().is_some_and(|e| e == "aaf") {
             let d = Document::open(&path, ReaderOptions::default())
                 .unwrap_or_else(|e| panic!("{}: {e}", path.display()));
-            assert!(!d.objects.is_empty());
+            assert!(d.objects().len() > 0);
             let c = d
                 .composition()
                 .unwrap_or_else(|e| panic!("{} timeline: {e}", path.display()));

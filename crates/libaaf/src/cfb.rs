@@ -144,9 +144,9 @@ pub struct Header {
     pub difat_sectors: u32,
 }
 #[derive(Clone, Debug)]
-pub struct Node {
+pub struct NodeRecord {
     pub id: u32,
-    pub name: Box<str>,
+    name: Range<usize>,
     pub kind: u8,
     pub color: u8,
     pub left: u32,
@@ -160,12 +160,51 @@ pub struct Node {
     pub size: u64,
     pub parent: Option<u32>,
 }
+/// Borrowed directory entry; its name is stored in the compound file's string arena.
+#[derive(Clone, Copy, Debug)]
+pub struct Node<'a> {
+    record: &'a NodeRecord,
+    pub name: &'a str,
+}
+impl std::ops::Deref for Node<'_> {
+    type Target = NodeRecord;
+    fn deref(&self) -> &Self::Target {
+        self.record
+    }
+}
+/// Indexed directory records and their shared UTF-8 names.
+#[derive(Default)]
+pub struct Nodes {
+    records: Vec<NodeRecord>,
+    names: String,
+}
+impl Nodes {
+    pub fn len(&self) -> usize {
+        self.records.len()
+    }
+    pub fn is_empty(&self) -> bool {
+        self.records.is_empty()
+    }
+    pub fn get(&self, index: usize) -> Option<Node<'_>> {
+        let record = self.records.get(index)?;
+        Some(Node {
+            record,
+            name: &self.names[record.name.clone()],
+        })
+    }
+    pub fn iter(&self) -> impl ExactSizeIterator<Item = Node<'_>> + DoubleEndedIterator + '_ {
+        self.records.iter().map(|record| Node {
+            record,
+            name: &self.names[record.name.clone()],
+        })
+    }
+}
 /// Owns either a native file handle with a bounded cache or an input byte buffer.
 /// Files must not be modified while open; use `from_bytes` for a snapshot.
 pub struct CompoundFile {
     data: Backing,
     pub header: Header,
-    pub nodes: Vec<Node>,
+    pub nodes: Nodes,
     pub fat: Vec<u32>,
     pub minifat: Vec<u32>,
     pub difat: Vec<u32>,
@@ -175,6 +214,10 @@ pub struct CompoundFile {
     name_hasher: RandomState,
 }
 impl CompoundFile {
+    pub(crate) fn file_size(&self) -> usize {
+        self.data.len()
+    }
+
     pub fn open(path: impl AsRef<Path>) -> Result<Self> {
         let file = File::open(path)?;
         let len =
@@ -239,7 +282,7 @@ impl CompoundFile {
         let mut file = Self {
             data: backing,
             header,
-            nodes: Vec::new(),
+            nodes: Nodes::default(),
             fat: Vec::new(),
             minifat: Vec::new(),
             difat: Vec::new(),
@@ -314,8 +357,39 @@ impl CompoundFile {
         }
         let dir = file.chain(file.header.first_directory, &file.fat, max)?;
         file.nodes
+            .records
             .reserve_exact(dir.len() * file.header.sector_size / 128);
         let mut directory_sector = vec![0; file.header.sector_size];
+        let mut name_bytes = 0;
+        for (sector_index, &id) in dir.iter().enumerate() {
+            file.data
+                .read_exact_at(file.sector_range(id)?.start, &mut directory_sector)?;
+            for (entry_index, b) in directory_sector.as_chunks::<128>().0.iter().enumerate() {
+                if b[66] == 0 {
+                    continue;
+                }
+                let nlen = u16_at(b, 64)? as usize;
+                if !(2..=64).contains(&nlen) || !nlen.is_multiple_of(2) || u16_at(b, nlen - 2)? != 0
+                {
+                    return Err(Error::invalid(
+                        "directory name",
+                        sector_index * file.header.sector_size + entry_index * 128,
+                    ));
+                }
+                let words = b[..nlen]
+                    .as_chunks::<2>()
+                    .0
+                    .iter()
+                    .map(|v| u16::from_le_bytes(*v))
+                    .take_while(|v| *v != 0);
+                for ch in char::decode_utf16(words) {
+                    name_bytes += ch
+                        .map_err(|_| Error::invalid("UTF-16 encoding", 0))?
+                        .len_utf8();
+                }
+            }
+        }
+        file.nodes.names.reserve_exact(name_bytes);
         for id in dir {
             file.data
                 .read_exact_at(file.sector_range(id)?.start, &mut directory_sector)?;
@@ -323,17 +397,16 @@ impl CompoundFile {
                 let i = file.nodes.len();
                 let kind = b[66];
                 let nlen = u16_at(b, 64)? as usize;
-                let name = if kind == 0 {
-                    String::new()
-                } else {
+                let first_name = file.nodes.names.len();
+                if kind != 0 {
                     if !(2..=64).contains(&nlen)
                         || !nlen.is_multiple_of(2)
                         || u16_at(b, nlen - 2)? != 0
                     {
                         return Err(Error::invalid("directory name", i * 128));
                     }
-                    utf16(&b[..nlen])?
-                };
+                    append_utf16(&b[..nlen], &mut file.nodes.names)?;
+                }
                 if !matches!(kind, 0 | 1 | 2 | 5) {
                     return Err(Error::invalid("directory type", i * 128 + 66));
                 }
@@ -342,9 +415,9 @@ impl CompoundFile {
                 } else {
                     u64_at(b, 120)?
                 };
-                file.nodes.push(Node {
+                file.nodes.records.push(NodeRecord {
                     id: i as u32,
-                    name: name.into_boxed_str(),
+                    name: first_name..file.nodes.names.len(),
                     kind,
                     color: b[67],
                     left: u32_at(b, 68)?,
@@ -360,7 +433,7 @@ impl CompoundFile {
                 });
             }
         }
-        if file.nodes.first().is_none_or(|n| n.kind != 5) {
+        if file.nodes.records.first().is_none_or(|n| n.kind != 5) {
             return Err(Error::invalid("root directory", 0));
         }
         drop(directory_sector);
@@ -368,13 +441,14 @@ impl CompoundFile {
             .reserve_exact(file.nodes.len().saturating_sub(1));
         let mut seen = vec![false; file.nodes.len()];
         seen[0] = true;
-        let mut stack = vec![(file.nodes[0].child, 0)];
+        let mut stack = vec![(file.nodes.get(0).unwrap().child, 0)];
         while let Some((id, parent)) = stack.pop() {
             if id == FREE {
                 continue;
             }
             let n = file
                 .nodes
+                .records
                 .get_mut(id as usize)
                 .ok_or_else(|| Error::invalid("directory ID", id as usize))?;
             if std::mem::replace(&mut seen[id as usize], true) {
@@ -390,7 +464,7 @@ impl CompoundFile {
             file.children.push(ChildIndex {
                 parent,
                 node: id,
-                name_hash: folded_hash(&file.name_hasher, &n.name),
+                name_hash: folded_hash(&file.name_hasher, &file.nodes.names[n.name.clone()]),
             });
             stack.push((n.right, parent));
             stack.push((n.left, parent));
@@ -403,8 +477,8 @@ impl CompoundFile {
                 .cmp(&(b.parent, b.name_hash))
                 .then_with(|| {
                     folded_cmp(
-                        &file.nodes[a.node as usize].name,
-                        &file.nodes[b.node as usize].name,
+                        file.nodes.get(a.node as usize).unwrap().name,
+                        file.nodes.get(b.node as usize).unwrap().name,
                     )
                 })
         };
@@ -431,8 +505,8 @@ impl CompoundFile {
                 .collect();
             file.minifat.extend(values);
         }
-        file.mini_chain = file.chain(file.nodes[0].start, &file.fat, max)?;
-        let root_size = usize::try_from(file.nodes[0].size)
+        file.mini_chain = file.chain(file.nodes.get(0).unwrap().start, &file.fat, max)?;
+        let root_size = usize::try_from(file.nodes.get(0).unwrap().size)
             .map_err(|_| Error::invalid("root stream size", 0))?;
         if root_size > file.mini_chain.len() * file.header.sector_size {
             return Err(Error::invalid("root stream length", 0));
@@ -494,14 +568,17 @@ impl CompoundFile {
         self.children[index..]
             .iter()
             .take_while(|entry| (entry.parent, entry.name_hash) == key)
-            .find(|entry| folded_cmp(&self.nodes[entry.node as usize].name, name).is_eq())
+            .find(|entry| {
+                folded_cmp(self.nodes.get(entry.node as usize).unwrap().name, name).is_eq()
+            })
             .map(|entry| entry.node)
     }
     pub fn node_by_path(&self, path: &str) -> Option<u32> {
         let mut id = 0;
         let mut parts = path.split(['/', '\\']).filter(|s| !s.is_empty()).peekable();
         if parts.peek().is_some_and(|v| {
-            v.eq_ignore_ascii_case(&self.nodes[0].name) || v.eq_ignore_ascii_case("Root")
+            v.eq_ignore_ascii_case(self.nodes.get(0).unwrap().name)
+                || v.eq_ignore_ascii_case("Root")
         }) {
             parts.next();
         }
@@ -515,7 +592,7 @@ impl CompoundFile {
         let mut id = Some(id);
         while let Some(i) = id {
             if let Some(n) = self.nodes.get(i as usize) {
-                names.push(n.name.as_ref());
+                names.push(n.name);
                 id = n.parent;
             } else {
                 break;
@@ -535,7 +612,8 @@ impl CompoundFile {
         if n.size == 0 {
             return Ok(Stream {
                 file: self,
-                ranges: Vec::new(),
+                first: 0..0,
+                rest: Vec::new(),
                 size: 0,
             });
         }
@@ -545,22 +623,30 @@ impl CompoundFile {
             return Err(Error::invalid("stream size", id as usize));
         }
         let mini = n.kind != 5 && size < self.header.mini_cutoff as usize;
-        let chain = if mini {
-            self.chain(n.start, &self.minifat, (self.nodes[0].size as usize) / 64)?
+        let (table, max) = if mini {
+            (
+                &self.minifat,
+                (self.nodes.get(0).unwrap().size as usize) / 64,
+            )
         } else {
-            self.chain(
-                n.start,
-                &self.fat,
-                self.data.len() / self.header.sector_size - 1,
-            )?
+            (&self.fat, self.data.len() / self.header.sector_size - 1)
         };
         let unit = if mini { 64 } else { self.header.sector_size };
-        if chain.len() != size.div_ceil(unit) {
+        let expected = size.div_ceil(unit);
+        if expected > max {
             return Err(Error::invalid("stream chain length", id as usize));
         }
-        let mut ranges: Vec<Range<usize>> = Vec::new();
+        let mut first: Range<usize> = 0..0;
+        let mut rest: Vec<Range<usize>> = Vec::new();
         let mut remaining = size;
-        for sid in chain {
+        let mut sid = n.start;
+        for _ in 0..expected {
+            if sid as usize >= max || matches!(sid, FREE | END | FAT | DIF) {
+                return Err(Error::invalid("stream sector", sid as usize));
+            }
+            let next = *table
+                .get(sid as usize)
+                .ok_or_else(|| Error::invalid("allocation table", sid as usize))?;
             let mut range = if mini {
                 let logical = sid as usize * 64;
                 let physical = *self
@@ -574,15 +660,24 @@ impl CompoundFile {
             };
             range.end = range.start + remaining.min(unit);
             remaining -= remaining.min(unit);
-            if let Some(last) = ranges.last_mut().filter(|last| last.end == range.start) {
+            let last = rest.last_mut().unwrap_or(&mut first);
+            if last.start == last.end {
+                *last = range;
+            } else if last.end == range.start {
                 last.end = range.end;
             } else {
-                ranges.push(range);
+                rest.push(range);
             }
+            sid = next;
+        }
+        // This also rejects cyclic chains after at most the declared stream size.
+        if sid != END {
+            return Err(Error::invalid("stream chain length", id as usize));
         }
         Ok(Stream {
             file: self,
-            ranges,
+            first,
+            rest,
             size,
         })
     }
@@ -590,14 +685,28 @@ impl CompoundFile {
 /// Fragmented stream borrowing its backing store; extraction never buffers the full payload.
 pub struct Stream<'a> {
     file: &'a CompoundFile,
-    ranges: Vec<Range<usize>>,
+    first: Range<usize>,
+    rest: Vec<Range<usize>>,
     pub size: usize,
 }
 impl<'a> Stream<'a> {
+    fn ranges(&self) -> impl Iterator<Item = &Range<usize>> {
+        (!self.first.is_empty())
+            .then_some(&self.first)
+            .into_iter()
+            .chain(self.rest.iter())
+    }
+    fn range(&self, index: usize) -> Option<&Range<usize>> {
+        if index == 0 {
+            (!self.first.is_empty()).then_some(&self.first)
+        } else {
+            self.rest.get(index - 1)
+        }
+    }
+
     /// Reads bounded chunks; owned backing returns borrowed slices.
     pub fn chunks(&self) -> impl Iterator<Item = Result<Cow<'_, [u8]>>> + '_ {
-        self.ranges
-            .iter()
+        self.ranges()
             .flat_map(|r| {
                 (r.start..r.end)
                     .step_by(CACHE_SIZE)
@@ -626,7 +735,7 @@ impl<'a> Stream<'a> {
             return Err(Error::invalid("media range", end));
         }
         let mut pos = 0;
-        for range in &self.ranges {
+        for range in self.ranges() {
             let next = pos + range.len();
             let left = start.max(pos);
             let right = end.min(next);
@@ -659,7 +768,7 @@ impl Read for StreamReader<'_, '_> {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
         let mut total = 0;
         while total < buf.len() {
-            let Some(r) = self.stream.ranges.get(self.chunk) else {
+            let Some(r) = self.stream.range(self.chunk) else {
                 break;
             };
             let start = r.start + self.offset;

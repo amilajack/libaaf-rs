@@ -14,8 +14,8 @@ fuzz_target!(|data: &[u8]| if let Ok(d) = libaaf::Document::from_bytes(
         let _ = libaaf::inspection::clips(&c, &options);
         let _ = libaaf::inspection::essences(&d, &c, &options);
     }
-    for o in &d.objects {
-        for p in &o.properties {
+    for o in d.objects() {
+        for p in o.properties() {
             let _ = o.raw(p.id);
         }
     }
