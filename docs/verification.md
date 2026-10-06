@@ -2,7 +2,8 @@
 
 2026-10-06, Apple M5, macOS 27.0.1, Rust 1.99.0. The complete native port is not yet accepted: see features.md and benchmarks.md for outstanding CLI fidelity and memory work.
 
-- All 65 upstream AAF fixtures parse and produce timelines.
+- All 65 upstream AAF fixtures parse and produce timelines. Every stream also matches between native file-backed and owned-buffer loading, including full copies and trimmed ranges.
+- Native cache tests cover boundary crossings, large direct reads, concurrent readers, truncation errors and overflowing offsets. Malformed files also exercise native loading through a Unicode temporary path.
 - 71 upstream comparisons pass: 65 expected analyses and six extraction hashes.
 - 455 additional native differential cases pass.
 - 15 CLI help/required-option/validation/file-selection cases pass, including exact help text.
@@ -21,6 +22,8 @@ Used cargo-fuzz 0.13.2 and nightly-2026-09-01 (development only), with AddressSa
 | document parsing and raw properties | 32,297 | Complete pinned AAF fixture suite |
 | document, ProTools recovery and text inspection | 44,143 | AAF fixtures and generated corpus from the first run |
 | media/URI parsing | 8,966,293 | Pinned WAV/AIFF files |
+
+After file-backed storage, streamed directory loading and metadata compaction, another document/ProTools/inspection AddressSanitizer campaign completed 31,858 runs in 61 seconds without a crash. The fuzzer uses owned buffers; the native file cache is covered by the focused tests above.
 
 These short campaigns supplement the regression tests; they are not evidence that every malformed input is covered. Generated corpora, logs and artifacts remain in ignored local directories.
 

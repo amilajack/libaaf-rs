@@ -983,7 +983,7 @@ impl Parser<'_> {
             && let Some(node) = embedded_node
         {
             let stream = doc.cfb.stream(node)?;
-            if let Ok(info) = crate::media::audio_info(&stream.prefix(65536)) {
+            if let Ok(info) = crate::media::audio_info(&stream.prefix(65536)?) {
                 e.channels = info.channels;
                 e.sample_rate = info.sample_rate;
                 e.sample_size = info.sample_size;

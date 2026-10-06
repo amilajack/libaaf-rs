@@ -4,13 +4,14 @@ Reference: `agfline/LibAAF@7925dff4026be06b4edfacdfe458887c2d6503ca`. Checkmarks
 
 ## Storage and AAF core
 
+- [x] Native file-backed loading with a 64 KiB cache; owned-buffer wasm input and fallible streaming reads
 - [x] CFB v3/v4 headers, DIFAT/FAT/MiniFAT, directory tree, mini streams and regular streams
 - [x] Checked offsets, lengths and allocation-table bounds; directory/allocation cycles fail
 - [x] Standard definitions generated from pinned headers and standard class/property registration
 - [x] Metadata dictionary, custom classes/properties, inheritance, original unknown property bytes
 - [x] Stable contiguous object arena and indexed strong-reference sets/vectors and weak references
 - [x] Typed strings, identifiers, integers, rationals, indirect values, tagged metadata and raw inspection
-- [x] Deterministic raw stream/property inspection with borrowed stream ranges
+- [x] Deterministic raw stream/property inspection with bounded file reads or borrowed owned-buffer ranges
 - [x] Original property bytes and resolved strong-reference edges match C on all 65 fixtures
 - [ ] Complete upstream parsed-property/debugging presentation equivalence
 - [x] AddressSanitizer fuzz runs for document parsing, text inspection/ProTools recovery, and media/URI parsing (see verification.md)

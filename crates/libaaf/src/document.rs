@@ -20,7 +20,7 @@ pub struct Property {
     pub id: u16,
     pub stored_form: u16,
     pub bytes: Range<usize>,
-    pub references: Vec<ObjectId>,
+    pub references: Box<[ObjectId]>,
 }
 #[derive(Debug)]
 pub struct Object {
@@ -28,8 +28,8 @@ pub struct Object {
     pub node: u32,
     pub class: Uid,
     pub parent: Option<ObjectId>,
-    pub properties: Vec<Property>,
-    data: Vec<u8>,
+    pub properties: Box<[Property]>,
+    data: Box<[u8]>,
 }
 impl Object {
     pub fn property(&self, pid: u16) -> Option<&Property> {
@@ -40,7 +40,7 @@ impl Object {
     }
     pub fn references(&self, pid: u16) -> &[ObjectId] {
         self.property(pid)
-            .map(|p| p.references.as_slice())
+            .map(|p| p.references.as_ref())
             .unwrap_or(&[])
     }
     pub fn reference(&self, pid: u16) -> Option<ObjectId> {
@@ -98,7 +98,7 @@ pub struct Document {
     pub identification: Option<ObjectId>,
     pub options: ReaderOptions,
     pub diagnostics: Vec<Diagnostic>,
-    node_objects: HashMap<u32, ObjectId>,
+    node_objects: Vec<Option<ObjectId>>,
     pub(crate) mobs: HashMap<Vec<u8>, ObjectId>,
     identifiers: HashMap<(u16, Vec<u8>), ObjectId>,
     class_index: HashMap<Uid, usize>,
@@ -115,7 +115,7 @@ impl Document {
     fn decode(cfb: CompoundFile, path: Option<PathBuf>, options: ReaderOptions) -> Result<Self> {
         let storage_count = cfb.nodes.iter().filter(|n| matches!(n.kind, 1 | 5)).count();
         let mut objects = Vec::with_capacity(storage_count);
-        let mut node_objects = HashMap::with_capacity(storage_count);
+        let mut node_objects = vec![None; cfb.nodes.len()];
         for n in &cfb.nodes {
             if n.kind != 1 && n.kind != 5 {
                 continue;
@@ -123,7 +123,7 @@ impl Document {
             let Some(properties) = cfb.child(n.id, "properties") else {
                 continue;
             };
-            let data = cfb.stream(properties)?.to_vec();
+            let data = cfb.stream(properties)?.to_vec()?;
             slice(&data, 0, 4)?;
             if !matches!(data[0], 0x4c | 0x55) {
                 return Err(Error::Unsupported(format!(
@@ -135,7 +135,7 @@ impl Document {
             let mut offset = 4 + count * 6;
             slice(&data, 4, count * 6)?;
             let id = ObjectId(objects.len() as u32);
-            node_objects.insert(n.id, id);
+            node_objects[n.id as usize] = Some(id);
             let mut props = Vec::with_capacity(count);
             let mut seen = HashSet::new();
             for i in 0..count {
@@ -151,7 +151,7 @@ impl Document {
                     id: pid,
                     stored_form: form,
                     bytes: offset..offset + len,
-                    references: Vec::new(),
+                    references: Box::default(),
                 });
                 offset += len;
             }
@@ -160,11 +160,11 @@ impl Document {
                 node: n.id,
                 class: n.class,
                 parent: None,
-                properties: props,
-                data,
+                properties: props.into_boxed_slice(),
+                data: data.into_boxed_slice(),
             });
         }
-        let root = *node_objects.get(&0).ok_or_else(|| Error::Missing {
+        let root = node_objects[0].ok_or_else(|| Error::Missing {
             context: "AAF root",
             name: "properties".into(),
         })?;
@@ -173,7 +173,7 @@ impl Document {
         for obj in &mut objects {
             obj.parent = cfb.nodes[obj.node as usize]
                 .parent
-                .and_then(|id| node_objects.get(&id).copied());
+                .and_then(|id| node_objects[id as usize]);
             for p in &mut obj.properties {
                 let b = &obj.data[p.bytes.clone()];
                 if !matches!(p.stored_form, 0x22 | 0x32 | 0x3a) {
@@ -183,9 +183,9 @@ impl Document {
                 if p.stored_form == 0x22 {
                     if let Some(id) = cfb
                         .child(obj.node, &name)
-                        .and_then(|n| node_objects.get(&n).copied())
+                        .and_then(|n| node_objects[n as usize])
                     {
-                        p.references.push(id);
+                        p.references = Box::new([id]);
                     } else {
                         diagnostics.push(Diagnostic {
                             object: Some(obj.id),
@@ -200,7 +200,7 @@ impl Document {
                         context: "strong reference index",
                         name: name.clone(),
                     })?;
-                let b = cfb.stream(index)?.to_vec();
+                let b = cfb.stream(index)?.to_vec()?;
                 let count = u32_at(&b, 0)? as usize;
                 let set = p.stored_form == 0x3a;
                 let (header, stride, pid, keylen) = if set {
@@ -213,15 +213,16 @@ impl Document {
                     .checked_mul(stride)
                     .ok_or_else(|| Error::invalid("reference count", 0))?;
                 slice(&b, header, bytes)?;
+                let mut references = Vec::with_capacity(count);
                 for i in 0..count {
                     let at = header + i * stride;
                     let key = u32_at(&b, at)?;
                     let target = format!("{name}{{{key:x}}}");
                     if let Some(id) = cfb
                         .child(obj.node, &target)
-                        .and_then(|n| node_objects.get(&n).copied())
+                        .and_then(|n| node_objects[n as usize])
                     {
-                        p.references.push(id);
+                        references.push(id);
                         if set {
                             identifiers.insert((pid, b[at + 8..at + 8 + keylen].to_vec()), id);
                         }
@@ -233,8 +234,9 @@ impl Document {
                     }
                 }
                 if set {
-                    p.references.reverse();
+                    references.reverse();
                 }
+                p.references = references.into_boxed_slice();
             }
         }
         let mut doc = Self {
@@ -287,7 +289,11 @@ impl Document {
         self.objects.get(id.0 as usize)
     }
     pub fn object_by_node(&self, id: u32) -> Option<&Object> {
-        self.node_objects.get(&id).map(|id| self.object(*id))
+        self.node_objects
+            .get(id as usize)
+            .copied()
+            .flatten()
+            .map(|id| self.object(id))
     }
     pub fn weak_target(&self, b: &[u8]) -> Option<ObjectId> {
         let pid = u16_at(b, 2).ok()?;

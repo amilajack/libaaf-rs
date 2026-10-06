@@ -1,12 +1,94 @@
-//! Checked Compound File Binary storage with borrowed, fragmented streams.
+//! Checked Compound File Binary storage with bounded file reads or owned bytes.
 use crate::{Error, Result, Uid, bytes::*};
 use std::{
+    borrow::Cow,
     collections::hash_map::RandomState,
+    fs::File,
     hash::BuildHasher,
-    io::{self, Read, Write},
+    io::{self, Read, Seek, SeekFrom, Write},
     ops::Range,
     path::Path,
+    sync::Mutex,
 };
+const CACHE_SIZE: usize = 64 * 1024;
+
+/// Native files retain an open handle and a bounded read cache. Owned input is
+/// used by wasm and callers that require an immutable snapshot.
+enum Backing {
+    Owned(Vec<u8>),
+    File { state: Mutex<FileCache>, len: usize },
+}
+struct FileCache {
+    file: File,
+    bytes: Vec<u8>,
+    start: usize,
+}
+impl Backing {
+    fn len(&self) -> usize {
+        match self {
+            Self::Owned(bytes) => bytes.len(),
+            Self::File { len, .. } => *len,
+        }
+    }
+    fn read_exact_at(&self, start: usize, out: &mut [u8]) -> io::Result<()> {
+        if start
+            .checked_add(out.len())
+            .is_none_or(|end| end > self.len())
+        {
+            return Err(io::Error::new(
+                io::ErrorKind::UnexpectedEof,
+                "backing range",
+            ));
+        }
+        match self {
+            Self::Owned(bytes) => out.copy_from_slice(&bytes[start..start + out.len()]),
+            Self::File { state, len } => {
+                let mut cache = state
+                    .lock()
+                    .map_err(|_| io::Error::other("file cache poisoned"))?;
+                let end = start + out.len();
+                if start >= cache.start && end <= cache.start + cache.bytes.len() {
+                    out.copy_from_slice(&cache.bytes[start - cache.start..end - cache.start]);
+                } else if out.len() >= CACHE_SIZE {
+                    cache.file.seek(SeekFrom::Start(start as u64))?;
+                    cache.file.read_exact(out)?;
+                } else {
+                    let mut at = start;
+                    let mut written = 0;
+                    while written < out.len() {
+                        let page = at / CACHE_SIZE * CACHE_SIZE;
+                        let size = CACHE_SIZE.min(*len - page);
+                        cache.bytes.clear();
+                        cache.file.seek(SeekFrom::Start(page as u64))?;
+                        let FileCache { file, bytes, .. } = &mut *cache;
+                        bytes.resize(size, 0);
+                        if let Err(error) = file.read_exact(bytes) {
+                            bytes.clear();
+                            return Err(error);
+                        }
+                        cache.start = page;
+                        let count = (size - (at - page)).min(out.len() - written);
+                        out[written..written + count]
+                            .copy_from_slice(&cache.bytes[at - page..at - page + count]);
+                        written += count;
+                        at += count;
+                    }
+                }
+            }
+        }
+        Ok(())
+    }
+    fn view(&self, range: Range<usize>) -> Result<Cow<'_, [u8]>> {
+        match self {
+            Self::Owned(bytes) => Ok(Cow::Borrowed(slice(bytes, range.start, range.len())?)),
+            Self::File { .. } => {
+                let mut bytes = vec![0; range.len()];
+                self.read_exact_at(range.start, &mut bytes)?;
+                Ok(Cow::Owned(bytes))
+            }
+        }
+    }
+}
 #[derive(Clone, Copy)]
 struct ChildIndex {
     parent: u32,
@@ -17,6 +99,20 @@ const FREE: u32 = 0xffff_ffff;
 const END: u32 = 0xffff_fffe;
 const FAT: u32 = 0xffff_fffd;
 const DIF: u32 = 0xffff_fffc;
+
+fn folded_hash(hasher: &RandomState, name: &str) -> u64 {
+    // CFB directory names fit in 31 UTF-16 units. Avoid a temporary heap
+    // allocation for the usual ASCII names; arbitrary lookup strings remain valid.
+    if name.is_ascii() && name.len() <= 64 {
+        let mut folded = [0u8; 64];
+        for (out, byte) in folded.iter_mut().zip(name.bytes()) {
+            *out = byte.to_ascii_lowercase();
+        }
+        hasher.hash_one(&folded[..name.len()])
+    } else {
+        hasher.hash_one(name.to_lowercase().as_bytes())
+    }
+}
 
 fn folded_cmp(a: &str, b: &str) -> std::cmp::Ordering {
     if a.is_ascii() && b.is_ascii() {
@@ -50,7 +146,7 @@ pub struct Header {
 #[derive(Clone, Debug)]
 pub struct Node {
     pub id: u32,
-    pub name: String,
+    pub name: Box<str>,
     pub kind: u8,
     pub color: u8,
     pub left: u32,
@@ -64,9 +160,10 @@ pub struct Node {
     pub size: u64,
     pub parent: Option<u32>,
 }
-/// Owns the file bytes; stream views refer to ranges within this allocation.
+/// Owns either a native file handle with a bounded cache or an input byte buffer.
+/// Files must not be modified while open; use `from_bytes` for a snapshot.
 pub struct CompoundFile {
-    data: Vec<u8>,
+    data: Backing,
     pub header: Header,
     pub nodes: Vec<Node>,
     pub fat: Vec<u32>,
@@ -79,10 +176,23 @@ pub struct CompoundFile {
 }
 impl CompoundFile {
     pub fn open(path: impl AsRef<Path>) -> Result<Self> {
-        Self::from_bytes(std::fs::read(path)?)
+        let file = File::open(path)?;
+        let len =
+            usize::try_from(file.metadata()?.len()).map_err(|_| Error::invalid("file size", 0))?;
+        Self::parse(Backing::File {
+            state: Mutex::new(FileCache {
+                file,
+                bytes: Vec::new(),
+                start: 0,
+            }),
+            len,
+        })
     }
     pub fn from_bytes(data: Vec<u8>) -> Result<Self> {
-        slice(&data, 0, 512)?;
+        Self::parse(Backing::Owned(data))
+    }
+    fn parse(backing: Backing) -> Result<Self> {
+        let data = backing.view(0..512)?;
         if slice(&data, 0, 8)? != [0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1] {
             return Err(Error::invalid("CFB signature", 0));
         }
@@ -113,9 +223,9 @@ impl CompoundFile {
         if header.mini_cutoff != 4096 {
             return Err(Error::invalid("CFB mini cutoff", 56));
         }
-        let sectors = data.len() / header.sector_size;
-        if sectors == 0 || !data.len().is_multiple_of(header.sector_size) {
-            return Err(Error::invalid("CFB file size", data.len()));
+        let sectors = backing.len() / header.sector_size;
+        if sectors == 0 || !backing.len().is_multiple_of(header.sector_size) {
+            return Err(Error::invalid("CFB file size", backing.len()));
         }
         let max = sectors - 1;
         if header.fat_sectors as usize > max
@@ -124,8 +234,10 @@ impl CompoundFile {
         {
             return Err(Error::invalid("CFB sector count", 44));
         }
+        let initial_difat = data[76..512].to_vec();
+        drop(data);
         let mut file = Self {
-            data,
+            data: backing,
             header,
             nodes: Vec::new(),
             fat: Vec::new(),
@@ -136,7 +248,7 @@ impl CompoundFile {
             name_hasher: RandomState::new(),
         };
         for i in 0..109 {
-            let id = u32_at(&file.data, 76 + i * 4)?;
+            let id = u32_at(&initial_difat, i * 4)?;
             if id != FREE {
                 file.difat.push(id);
             }
@@ -201,52 +313,57 @@ impl CompoundFile {
             }
         }
         let dir = file.chain(file.header.first_directory, &file.fat, max)?;
-        let mut directory = Vec::with_capacity(dir.len() * file.header.sector_size);
+        file.nodes
+            .reserve_exact(dir.len() * file.header.sector_size / 128);
+        let mut directory_sector = vec![0; file.header.sector_size];
         for id in dir {
-            directory.extend_from_slice(file.sector(id)?);
-        }
-        file.nodes.reserve_exact(directory.len() / 128);
-        for (i, b) in directory.as_chunks::<128>().0.iter().enumerate() {
-            let kind = b[66];
-            let nlen = u16_at(b, 64)? as usize;
-            let name = if kind == 0 {
-                String::new()
-            } else {
-                if !(2..=64).contains(&nlen) || !nlen.is_multiple_of(2) || u16_at(b, nlen - 2)? != 0
-                {
-                    return Err(Error::invalid("directory name", i * 128));
+            file.data
+                .read_exact_at(file.sector_range(id)?.start, &mut directory_sector)?;
+            for b in directory_sector.as_chunks::<128>().0 {
+                let i = file.nodes.len();
+                let kind = b[66];
+                let nlen = u16_at(b, 64)? as usize;
+                let name = if kind == 0 {
+                    String::new()
+                } else {
+                    if !(2..=64).contains(&nlen)
+                        || !nlen.is_multiple_of(2)
+                        || u16_at(b, nlen - 2)? != 0
+                    {
+                        return Err(Error::invalid("directory name", i * 128));
+                    }
+                    utf16(&b[..nlen])?
+                };
+                if !matches!(kind, 0 | 1 | 2 | 5) {
+                    return Err(Error::invalid("directory type", i * 128 + 66));
                 }
-                utf16(&b[..nlen])?
-            };
-            if !matches!(kind, 0 | 1 | 2 | 5) {
-                return Err(Error::invalid("directory type", i * 128 + 66));
+                let size = if major == 3 {
+                    u32_at(b, 120)? as u64
+                } else {
+                    u64_at(b, 120)?
+                };
+                file.nodes.push(Node {
+                    id: i as u32,
+                    name: name.into_boxed_str(),
+                    kind,
+                    color: b[67],
+                    left: u32_at(b, 68)?,
+                    right: u32_at(b, 72)?,
+                    child: u32_at(b, 76)?,
+                    class: Uid::from_bytes(&b[80..96]).unwrap(),
+                    state: u32_at(b, 96)?,
+                    created: u64_at(b, 100)?,
+                    modified: u64_at(b, 108)?,
+                    start: u32_at(b, 116)?,
+                    size,
+                    parent: None,
+                });
             }
-            let size = if major == 3 {
-                u32_at(b, 120)? as u64
-            } else {
-                u64_at(b, 120)?
-            };
-            file.nodes.push(Node {
-                id: i as u32,
-                name,
-                kind,
-                color: b[67],
-                left: u32_at(b, 68)?,
-                right: u32_at(b, 72)?,
-                child: u32_at(b, 76)?,
-                class: Uid::from_bytes(&b[80..96]).unwrap(),
-                state: u32_at(b, 96)?,
-                created: u64_at(b, 100)?,
-                modified: u64_at(b, 108)?,
-                start: u32_at(b, 116)?,
-                size,
-                parent: None,
-            });
         }
         if file.nodes.first().is_none_or(|n| n.kind != 5) {
             return Err(Error::invalid("root directory", 0));
         }
-        drop(directory);
+        drop(directory_sector);
         file.children
             .reserve_exact(file.nodes.len().saturating_sub(1));
         let mut seen = vec![false; file.nodes.len()];
@@ -273,7 +390,7 @@ impl CompoundFile {
             file.children.push(ChildIndex {
                 parent,
                 node: id,
-                name_hash: file.name_hasher.hash_one(n.name.to_lowercase()),
+                name_hash: folded_hash(&file.name_hasher, &n.name),
             });
             stack.push((n.right, parent));
             stack.push((n.left, parent));
@@ -327,11 +444,16 @@ impl CompoundFile {
             .checked_add(1)
             .and_then(|v| v.checked_mul(self.header.sector_size))
             .ok_or_else(|| Error::invalid("sector overflow", id as usize))?;
-        slice(&self.data, start, self.header.sector_size)?;
+        if start
+            .checked_add(self.header.sector_size)
+            .is_none_or(|end| end > self.data.len())
+        {
+            return Err(Error::invalid("sector range", start));
+        }
         Ok(start..start + self.header.sector_size)
     }
-    pub fn sector(&self, id: u32) -> Result<&[u8]> {
-        Ok(&self.data[self.sector_range(id)?])
+    pub fn sector(&self, id: u32) -> Result<Cow<'_, [u8]>> {
+        self.data.view(self.sector_range(id)?)
     }
     fn chain(&self, start: u32, table: &[u32], max: usize) -> Result<Vec<u32>> {
         let mut ids = Vec::new();
@@ -356,7 +478,7 @@ impl CompoundFile {
         Ok(ids)
     }
     pub fn child(&self, parent: u32, name: &str) -> Option<u32> {
-        let key = (parent, self.name_hasher.hash_one(name.to_lowercase()));
+        let key = (parent, folded_hash(&self.name_hasher, name));
         let mut index = self
             .children
             .binary_search_by_key(&key, |entry| (entry.parent, entry.name_hash))
@@ -393,7 +515,7 @@ impl CompoundFile {
         let mut id = Some(id);
         while let Some(i) = id {
             if let Some(n) = self.nodes.get(i as usize) {
-                names.push(n.name.as_str());
+                names.push(n.name.as_ref());
                 id = n.parent;
             } else {
                 break;
@@ -465,22 +587,26 @@ impl CompoundFile {
         })
     }
 }
-/// Fragmented borrowed byte stream; extraction does not duplicate its payload.
+/// Fragmented stream borrowing its backing store; extraction never buffers the full payload.
 pub struct Stream<'a> {
     file: &'a CompoundFile,
     ranges: Vec<Range<usize>>,
     pub size: usize,
 }
 impl<'a> Stream<'a> {
-    pub fn chunks(&self) -> impl Iterator<Item = &'a [u8]> + '_ {
-        self.ranges.iter().map(|r| &self.file.data[r.clone()])
+    /// Reads bounded chunks; owned backing returns borrowed slices.
+    pub fn chunks(&self) -> impl Iterator<Item = Result<Cow<'_, [u8]>>> + '_ {
+        self.ranges
+            .iter()
+            .flat_map(|r| {
+                (r.start..r.end)
+                    .step_by(CACHE_SIZE)
+                    .map(move |start| start..r.end.min(start.saturating_add(CACHE_SIZE)))
+            })
+            .map(|range| self.file.data.view(range))
     }
-    pub fn to_vec(&self) -> Vec<u8> {
-        let mut v = Vec::with_capacity(self.size);
-        for b in self.chunks() {
-            v.extend_from_slice(b);
-        }
-        v
+    pub fn to_vec(&self) -> Result<Vec<u8>> {
+        self.prefix(self.size)
     }
     pub fn reader(&self) -> StreamReader<'_, 'a> {
         StreamReader {
@@ -490,10 +616,7 @@ impl<'a> Stream<'a> {
         }
     }
     pub fn copy_to(&self, mut out: impl Write) -> io::Result<u64> {
-        for b in self.chunks() {
-            out.write_all(b)?;
-        }
-        Ok(self.size as u64)
+        io::copy(&mut self.reader(), &mut out)
     }
     pub fn copy_range(&self, start: usize, len: usize, mut out: impl Write) -> Result<()> {
         let end = start
@@ -503,12 +626,16 @@ impl<'a> Stream<'a> {
             return Err(Error::invalid("media range", end));
         }
         let mut pos = 0;
-        for b in self.chunks() {
-            let next = pos + b.len();
+        for range in &self.ranges {
+            let next = pos + range.len();
             let left = start.max(pos);
             let right = end.min(next);
             if left < right {
-                out.write_all(&b[left - pos..right - pos])?;
+                let physical = range.start + left - pos;
+                for start in (physical..physical + right - left).step_by(CACHE_SIZE) {
+                    let end = (start + CACHE_SIZE).min(physical + right - left);
+                    out.write_all(&self.file.data.view(start..end)?)?;
+                }
             }
             pos = next;
             if pos >= end {
@@ -517,13 +644,10 @@ impl<'a> Stream<'a> {
         }
         Ok(())
     }
-    pub fn prefix(&self, len: usize) -> Vec<u8> {
+    pub fn prefix(&self, len: usize) -> Result<Vec<u8>> {
         let mut data = vec![0; len.min(self.size)];
-        // Reading from validated in-memory ranges cannot fail.
-        self.reader()
-            .read_exact(&mut data)
-            .expect("validated stream ranges");
-        data
+        self.reader().read_exact(&mut data)?;
+        Ok(data)
     }
 }
 pub struct StreamReader<'s, 'a> {
@@ -538,9 +662,17 @@ impl Read for StreamReader<'_, '_> {
             let Some(r) = self.stream.ranges.get(self.chunk) else {
                 break;
             };
-            let b = &self.stream.file.data[r.start + self.offset..r.end];
-            let n = b.len().min(buf.len() - total);
-            buf[total..total + n].copy_from_slice(&b[..n]);
+            let start = r.start + self.offset;
+            let n = (r.end - start).min(buf.len() - total);
+            if let Err(error) = self
+                .stream
+                .file
+                .data
+                .read_exact_at(start, &mut buf[total..total + n])
+            {
+                // Preserve successfully consumed ranges when a later file read fails.
+                return if total == 0 { Err(error) } else { Ok(total) };
+            }
             total += n;
             self.offset += n;
             if self.offset == r.len() {
@@ -549,5 +681,77 @@ impl Read for StreamReader<'_, '_> {
             }
         }
         Ok(total)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn file_reads_report_truncation() {
+        let path = std::env::temp_dir().join(format!("libaaf-backing-{}", std::process::id()));
+        let mut file = std::fs::OpenOptions::new()
+            .create_new(true)
+            .read(true)
+            .write(true)
+            .open(&path)
+            .unwrap();
+        let expected: Vec<_> = (0..CACHE_SIZE * 3).map(|i| (i % 251) as u8).collect();
+        file.write_all(&expected).unwrap();
+        let backing = Backing::File {
+            state: Mutex::new(FileCache {
+                file,
+                bytes: Vec::new(),
+                start: 0,
+            }),
+            len: CACHE_SIZE * 3,
+        };
+        for (start, len) in [
+            (0, 8),
+            (CACHE_SIZE - 7, 31),
+            (CACHE_SIZE + 3, 123),
+            (5, CACHE_SIZE * 2),
+        ] {
+            let mut actual = vec![0; len];
+            backing.read_exact_at(start, &mut actual).unwrap();
+            assert_eq!(actual, expected[start..start + len]);
+            assert!(backing.state_for_test().lock().unwrap().bytes.len() <= CACHE_SIZE);
+        }
+        std::thread::scope(|scope| {
+            for start in [1, CACHE_SIZE - 3, CACHE_SIZE * 2] {
+                let backing = &backing;
+                let expected = &expected;
+                scope.spawn(move || {
+                    let mut actual = [0; 17];
+                    backing.read_exact_at(start, &mut actual).unwrap();
+                    assert_eq!(actual, expected[start..start + 17]);
+                });
+            }
+        });
+        backing
+            .state_for_test()
+            .lock()
+            .unwrap()
+            .file
+            .set_len(0)
+            .unwrap();
+        assert_eq!(
+            backing
+                .read_exact_at(0, &mut vec![0; CACHE_SIZE * 2])
+                .unwrap_err()
+                .kind(),
+            io::ErrorKind::UnexpectedEof
+        );
+        assert!(backing.read_exact_at(usize::MAX, &mut [0; 8]).is_err());
+        drop(backing);
+        std::fs::remove_file(path).unwrap();
+    }
+    impl Backing {
+        fn state_for_test(&self) -> &Mutex<FileCache> {
+            match self {
+                Self::File { state, .. } => state,
+                _ => unreachable!(),
+            }
+        }
     }
 }

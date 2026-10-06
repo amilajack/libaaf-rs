@@ -1,6 +1,6 @@
 # Mac performance baseline
 
-This diagnostic baseline does **not** pass the requested acceptance gates. Native Rust uses an owned file buffer and currently exceeds the C +10% peak-memory limit. Normal desktop activity continued during measurement, so a controlled final run is still required.
+This diagnostic baseline does **not** pass the requested acceptance gates. Native Rust now uses file-backed loading but still exceeds the C +10% peak-memory limit. The owned-buffer numbers below are retained as historical baselines. Normal desktop activity continued during measurement, so a controlled final run is still required.
 
 Both harnesses parse the AAF and interpret its timeline. Parsing measures repeated complete load/parse/drop operations; extraction parses once, then repeatedly extracts every embedded audio essence as WAV into the same temporary directory. C is built with CMake Release and the harness with `-O3 -DNDEBUG`; Rust uses the workspace release profile. Logging is disabled. Neither harness prints analysis output inside timed work. No memory measurements are subtracted from the process baseline.
 
@@ -63,3 +63,31 @@ The `f3445af` build removes duplicated directory names from the index and reserv
 ## Larger local session diagnostic
 
 Three alternating pairs of 20 parses of an 8,050,176-byte Downloads AAF measured C at 210–242 ms and Rust at 21.6–23.4 ms per parse. Maximum observed process RSS was 16,596,992 bytes in C versus 32,768,000 bytes in Rust (1.97×). This short diagnostic is not a designated acceptance run, but confirms that the memory gap persists on a larger real session. No private input file or filename is included in this report.
+
+## File-backed reader follow-up
+
+Native loading now owns an open file with a 64 KiB cache and direct large reads; wasm keeps owned bytes. Immutable directory names, properties, reference lists and object data use exact allocations. Node-to-object lookup uses a contiguous index. All original bytes and strong-reference edges still match C. Twenty-one alternating pairs of 100 operations measured the following intermediate result, with normal desktop activity. Raw measurements are in [benchmark-file-backed.json](benchmark-file-backed.json).
+
+| Workload | Mode | Runtime ratio | 95% ratio interval | Peak RSS ratio |
+|---|---|---:|---:|---:|
+| small | parse | 1.051 | 1.040–1.062 | 1.199 |
+| large | parse | 0.626 | 0.620–0.633 | 1.260 |
+| multichannel | parse | 1.026 | 1.022–1.031 | 1.260 |
+| embedded | parse | 0.764 | 0.702–0.832 | 1.310 |
+| embedded | extract | 0.868 | 0.792–0.950 | 1.154 |
+
+All memory gates still fail; the small parse runtime confidence interval also exceeds 1.05. These measurements do not establish full acceptance. Before immutable-metadata compaction, the file-backed reader held 1,399,856 allocated bytes for `PT_Fades.aaf` (down from the initial 2,387,040), versus the previously measured C 1,120,800.
+
+### Streamed directories and UTF-16 allocation follow-up
+
+The directory decoder now processes one sector at a time instead of retaining a second full directory table. A three-second macOS `sample` capture identified UTF-16 conversion allocation/reallocation work; conversion now decodes directly into a String without an intermediate word vector. Twenty-one alternating pairs of 200 operations measured the following. Every runtime confidence interval passes the +5% gate; every memory gate still fails. Raw measurements: [benchmark-streamed-directory.json](benchmark-streamed-directory.json).
+
+| Workload | Mode | Runtime ratio | 95% ratio interval | Peak RSS ratio |
+|---|---|---:|---:|---:|
+| small | parse | 0.899 | 0.879–0.919 | 1.184 |
+| large | parse | 0.523 | 0.500–0.548 | 1.213 |
+| multichannel | parse | 0.893 | 0.860–0.928 | 1.232 |
+| embedded | parse | 0.665 | 0.656–0.673 | 1.218 |
+| embedded | extract | 0.896 | 0.841–0.955 | 1.150 |
+
+Before the streamed-directory follow-up, three alternating pairs on the 8,050,176-byte Downloads session measured Rust at 21.3–25.1 ms per parse and peak RSS 25,575,424 bytes, versus C at 197–220 ms and peak RSS 16,564,224 bytes. Rust peak RSS fell from the prior 32,768,000-byte observation, but remained over the acceptance limit. These private-input diagnostics retain neither the source file nor its filename in Git.

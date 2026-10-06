@@ -38,7 +38,7 @@ extract_to_file(&document, &composition, 0, ExtractFormat::Wave,
 # Ok::<(), libaaf::Error>(())
 ```
 
-`Document::from_bytes` owns the input buffer. Objects use stable IDs and expose original property bytes and indexed references. Unknown property bytes remain inspectable. Media streams borrow ranges from the backing buffer; extraction streams into a writer without a second embedded-media allocation. `ReaderOptions` controls external media location, ProTools fade recovery, sample-accurate-edit removal, and MobID filenames. Failures are structured `Error` values; recoverable interpretation issues appear in document/composition diagnostics.
+`Document::from_bytes` owns the input buffer. Objects use stable IDs and expose original property bytes and indexed references. Unknown property bytes remain inspectable. Native `Document::open` keeps an owned file handle with a bounded read cache; it does not load the whole file. Keep that file unchanged while the document is open, or use `from_bytes` for an immutable snapshot. Media streams read ranges from either backing; extraction streams into a writer without a second embedded-media allocation. Stream `to_vec`, `prefix`, and chunk reads are fallible so later file I/O errors propagate. `ReaderOptions` controls external media location, ProTools fade recovery, sample-accurate-edit removal, and MobID filenames. Failures are structured `Error` values; recoverable interpretation issues appear in document/composition diagnostics.
 
 ```sh
 cargo run --release -p aaftool -- --aaf-summary --aaf-clips --aaf-essences --no-color session.aaf
@@ -90,3 +90,7 @@ cargo +nightly fuzz run document fuzz/corpus/document tooling/reference/test/aaf
  Nightly is used only by fuzz tooling, never by production crates.
 
 No crates.io publication or public release is configured.
+
+### File-backed reader API changes
+
+`CompoundFile::sector` returns `Cow<[u8]>`. `Stream::to_vec` and `prefix` now return `Result<Vec<u8>>`; propagate failures with `?`. `chunks` yields fallible `Cow<[u8]>` values in bounded pieces. Use `reader` or `copy_to` for streaming extraction. `Node::name`, `Object::properties`, and `Property::references` use boxed immutable storage; ordinary indexing, iteration, and borrowed access are unchanged. Convert with `into()` when constructing these fields. Native files must remain unchanged while open; `Document::from_bytes` retains snapshot semantics.

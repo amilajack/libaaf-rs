@@ -184,10 +184,14 @@ fn run() -> Result<(), String> {
             if doc.cfb.nodes[id as usize].kind == 2 {
                 let stream = doc.cfb.stream(id).map_err(|e| e.to_string())?;
                 if doc.cfb.nodes[id as usize].name.starts_with("properties") {
-                    s += &inspection::raw_properties(&doc, &stream.to_vec(), " ")
-                        .map_err(|e| e.to_string())?;
+                    s += &inspection::raw_properties(
+                        &doc,
+                        &stream.to_vec().map_err(|e| e.to_string())?,
+                        " ",
+                    )
+                    .map_err(|e| e.to_string())?;
                 } else {
-                    s += &inspection::hex(&stream.to_vec(), " ");
+                    s += &inspection::hex(&stream.to_vec().map_err(|e| e.to_string())?, " ");
                 }
             }
         } else {
@@ -250,7 +254,11 @@ fn run() -> Result<(), String> {
                 let node = doc.cfb.child(o.node, "properties").unwrap();
                 s += &inspection::raw_properties(
                     &doc,
-                    &doc.cfb.stream(node).map_err(|e| e.to_string())?.to_vec(),
+                    &doc.cfb
+                        .stream(node)
+                        .map_err(|e| e.to_string())?
+                        .to_vec()
+                        .map_err(|e| e.to_string())?,
                     " ",
                 )
                 .map_err(|e| e.to_string())?;

@@ -149,7 +149,7 @@ fn unicode_paths_missing_media_and_unknown_properties() {
 fn property_stream_offset(d: &Document, id: libaaf::ObjectId, data: &[u8]) -> usize {
     let o = d.object(id);
     let node = d.cfb.child(o.node, "properties").unwrap();
-    let b = d.cfb.stream(node).unwrap().to_vec();
+    let b = d.cfb.stream(node).unwrap().to_vec().unwrap();
     data.windows(b.len())
         .position(|s| s == b)
         .expect("fixture property stream is contiguous")
@@ -195,4 +195,37 @@ fn retain_unknown_properties_and_detect_source_cycles() {
     b[at + p.bytes.start..at + p.bytes.end].copy_from_slice(&slot.to_le_bytes());
     let d = Document::from_bytes(b, ReaderOptions::default()).unwrap();
     assert!(matches!(d.composition(), Err(libaaf::Error::Cycle { .. })));
+}
+
+#[test]
+fn malformed_files_match_owned_input_rejection() {
+    let original = fixture();
+    let path = std::env::temp_dir().join(format!("libaaf-native-雪-{}.aaf", std::process::id()));
+    let file = fs::OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .open(&path)
+        .unwrap();
+    drop(file);
+    struct Cleanup(PathBuf);
+    impl Drop for Cleanup {
+        fn drop(&mut self) {
+            let _ = fs::remove_file(&self.0);
+        }
+    }
+    let _cleanup = Cleanup(path.clone());
+    let mut cases = Vec::new();
+    for len in [0, 8, 511, 512, original.len() - 1] {
+        cases.push(original[..len].to_vec());
+    }
+    for (offset, value) in [(0, 0), (28, 0), (30, 63), (32, 63), (48, 0xff)] {
+        let mut data = original.clone();
+        data[offset] = value;
+        cases.push(data);
+    }
+    for data in cases {
+        fs::write(&path, &data).unwrap();
+        assert!(Document::from_bytes(data, ReaderOptions::default()).is_err());
+        assert!(Document::open(&path, ReaderOptions::default()).is_err());
+    }
 }
