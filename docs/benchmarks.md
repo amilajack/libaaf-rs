@@ -36,11 +36,11 @@ InstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault
 
 ```sh
 cargo build --release -p libaaf-acceptance
-cc -O3 -DNDEBUG -I tooling/reference/include tooling/benchmark.c tooling/reference-build/lib/aaf -o tooling/reference-build/benchmark
+python3 tooling/build_reference_tools.py
 python3 tooling/benchmarks.py --pairs 21 --iterations 100
 ```
 
-On Linux, add `-lm` when linking the C harness. This benchmark script intentionally requires the Mac acceptance machine. Shared CI performance is informational. Local raw reports are written under ignored `tooling/results`; the initial sanitized report is checked in as `docs/benchmark-baseline.json`.
+The helper handles macOS/Linux archive names and links the math library. This benchmark script intentionally requires the Mac acceptance machine. Shared CI performance is informational. Local raw reports are written under ignored `tooling/results`; the initial sanitized report is checked in as `docs/benchmark-baseline.json`.
 
 ## Initial heap profile
 

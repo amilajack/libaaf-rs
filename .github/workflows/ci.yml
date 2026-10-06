@@ -37,7 +37,7 @@ jobs:
       - run: cmake --build tooling/reference-build --parallel 2
       - run: python3 tooling/differential.py
       - run: python3 tooling/upstream_tests.py
-      - run: cc -O3 -DNDEBUG -I tooling/reference/include tooling/inspection.c tooling/reference-build/lib/aaf -lm -o tooling/reference-build/inspection
+      - run: python3 tooling/build_reference_tools.py
       - run: python3 tooling/inspect_differential.py
       - run: cargo check --manifest-path fuzz/Cargo.toml --locked
       - run: cargo install wasm-pack --version 0.15.0 --locked
